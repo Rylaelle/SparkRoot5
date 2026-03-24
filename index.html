@@ -1,0 +1,2289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <title>Sparkroot</title>
+
+  <style>
+    :root {
+      /* Instagram ombre palette */
+      --green:#833ab4;--green-light:#9b59d0;--green-dark:#5f27cd;
+      --sage:#c13584;--sage-light:#d4569e;--sage-dark:#962fbf;
+      --forest:#e1306c;--forest-light:#e8507e;--forest-dark:#c13584;
+      --pink:#f9b4d0;--pink-light:#fde0ee;--pink-dark:#e1306c;--pink-accent:#fd1d1d;
+      --cream:#fdf5f9;--cream-dark:#f5e6f0;
+      --charcoal:#2d2d2d;--charcoal-light:#555;--charcoal-soft:#888;
+      --white:#fff;--gold:#fcaf45;
+      --card-shadow:0 2px 12px rgba(0,0,0,.08);--radius:12px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--charcoal);}
+
+    /* ── SETUP OVERLAY ── */
+    #setup-overlay{position:fixed;inset:0;background:linear-gradient(155deg,#405de6,#833ab4,#c13584);
+      z-index:9999;display:none;overflow-y:auto;padding:40px 20px;}
+    .setup-box{max-width:700px;margin:0 auto;background:#fff;border-radius:20px;
+      padding:48px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+    .setup-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;}
+    .setup-logo-icon{width:48px;height:48px;background:var(--sage);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:22px;}
+    .setup-logo-text{font-size:1.5rem;font-weight:800;color:var(--charcoal);}
+    .setup-logo-text span{color:var(--sage);}
+    .setup-title{font-size:1.6rem;font-weight:800;margin-bottom:8px;}
+    .setup-sub{color:var(--charcoal-soft);margin-bottom:32px;line-height:1.6;}
+    .setup-step{display:flex;gap:16px;margin-bottom:24px;padding-bottom:24px;
+      border-bottom:1.5px solid var(--cream-dark);}
+    .setup-step:last-of-type{border-bottom:none;}
+    .step-num{width:36px;height:36px;border-radius:50%;background:var(--sage);
+      color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;
+      font-size:1rem;flex-shrink:0;}
+    .step-body h3{font-size:1rem;font-weight:700;margin-bottom:6px;}
+    .step-body p{font-size:.9rem;color:var(--charcoal-light);line-height:1.6;margin-bottom:8px;}
+    .step-body a{color:var(--green);font-weight:600;}
+    .step-code{background:#1e2a38;color:#d4b0f5;padding:10px 14px;border-radius:8px;
+      font-family:monospace;font-size:.82rem;word-break:break-all;margin-top:6px;}
+    .setup-btn{display:inline-block;background:var(--green);color:#fff;padding:13px 30px;
+      border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;border:none;
+      margin-top:8px;font-family:inherit;transition:background .2s;}
+    .setup-btn:hover{background:var(--green-dark);}
+    .setup-warn{background:#fff8e1;border:1.5px solid var(--gold);border-radius:8px;
+      padding:12px 16px;font-size:.88rem;color:#7a5c00;margin-top:16px;}
+
+    /* NAV */
+    nav{background:var(--charcoal);display:flex;align-items:center;justify-content:space-between;
+      padding:0 40px;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-icon{width:36px;height:36px;background:var(--sage);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:18px;}
+    .logo-text{color:#fff;font-size:1.2rem;font-weight:700;}
+    .logo-text span{color:#e0b4f5;}
+    .nav-links{display:flex;gap:8px;align-items:center;}
+    .nav-btn{padding:8px 18px;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;
+      border:2px solid transparent;transition:all .2s;font-family:inherit;}
+    .nav-btn.outline{background:transparent;border-color:#e0b4f5;color:#e0b4f5;}
+    .nav-btn.outline:hover{background:#e0b4f5;color:var(--charcoal);}
+    .nav-btn.solid{background:var(--pink-dark);color:#fff;}
+    .nav-btn.solid:hover{background:var(--pink-accent);}
+    .nav-btn.ghost{background:transparent;border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.8);}
+    .nav-btn.ghost:hover{background:rgba(255,255,255,.1);}
+    .nav-profile-btn{display:flex;align-items:center;gap:8px;background:none;border:none;
+      cursor:pointer;padding:4px 8px;border-radius:8px;transition:background .2s;}
+    .nav-profile-btn:hover{background:rgba(255,255,255,.1);}
+    .nav-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-weight:700;font-size:.75rem;color:#fff;
+      border:2px solid rgba(255,255,255,.3);}
+    .nav-name{color:#e0b4f5;font-size:.9rem;font-weight:600;}
+    .nav-role-badge{font-size:.7rem;color:rgba(255,255,255,.55);}
+
+    /* HERO */
+    .hero{position:relative;overflow:hidden;text-align:center;
+      background:linear-gradient(160deg,#405de6 0%,#833ab4 28%,#c13584 55%,#e1306c 75%,#fcaf45 100%);
+      color:#fff;padding:80px 20px 90px;}
+    .hero-content{position:relative;z-index:2;}
+    .hero-badge{display:inline-block;background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.4);color:rgba(255,255,255,.95);
+      padding:5px 16px;border-radius:20px;font-size:.8rem;letter-spacing:1px;
+      text-transform:uppercase;margin-bottom:18px;}
+    .hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.2;
+      margin-bottom:16px;text-shadow:0 2px 12px rgba(0,0,0,.15);}
+    .hero h1 span{color:#ffd6f5;}
+    .hero p{font-size:1.05rem;color:rgba(255,255,255,.85);max-width:560px;
+      margin:0 auto 32px;line-height:1.6;}
+    .hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+    .cta-btn{padding:13px 30px;border-radius:10px;font-size:1rem;font-weight:700;
+      cursor:pointer;border:none;transition:all .2s;font-family:inherit;}
+    .cta-btn.primary{background:rgba(255,255,255,.22);color:#fff;
+      border:2px solid rgba(255,255,255,.5);}
+    .cta-btn.primary:hover{background:rgba(255,255,255,.32);transform:translateY(-2px);}
+    .cta-btn.secondary{background:#fff;color:var(--pink-dark);font-weight:800;}
+    .cta-btn.secondary:hover{transform:translateY(-2px);}
+    .hero-stats{display:flex;justify-content:center;gap:48px;margin-top:48px;flex-wrap:wrap;}
+    .stat-num{font-size:1.8rem;font-weight:800;color:#c8f0d8;}
+    .stat-label{font-size:.8rem;color:rgba(255,255,255,.6);letter-spacing:.5px;}
+    .engrave{position:absolute;pointer-events:none;}
+
+    /* TABS */
+    .section-tabs{display:flex;justify-content:center;background:#fff;
+      border-bottom:2px solid var(--cream-dark);position:sticky;top:64px;
+      z-index:90;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+    .tab-btn{padding:18px 36px;font-size:.95rem;font-weight:600;color:var(--charcoal-soft);
+      background:transparent;border:none;cursor:pointer;border-bottom:3px solid transparent;
+      transition:all .2s;white-space:nowrap;font-family:inherit;}
+    .tab-btn:hover{color:var(--green);background:var(--cream);}
+    .tab-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--cream);}
+
+    /* SECTIONS */
+    .section-content{display:none;animation:fadeIn .3s ease;}
+    .section-content.active{display:block;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .container{max-width:1100px;margin:0 auto;padding:0 24px;}
+    .section-header{padding:48px 0 28px;text-align:center;}
+    .section-header h2{font-size:1.8rem;font-weight:800;margin-bottom:8px;}
+    .section-header p{color:var(--charcoal-soft);font-size:1rem;max-width:500px;margin:0 auto;}
+
+    /* LOADING */
+    .loading-posts{text-align:center;padding:48px;color:var(--charcoal-soft);}
+    .spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--cream-dark);
+      border-top-color:var(--forest);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* FORUM SEARCH */
+    .forum-search-wrap{max-width:540px;margin:0 auto 24px;position:relative;}
+    .forum-search-wrap input{width:100%;padding:12px 42px 12px 46px;border:2px solid var(--cream-dark);
+      border-radius:50px;font-size:.95rem;font-family:inherit;background:#fff;
+      color:var(--charcoal);transition:border-color .2s;box-shadow:var(--card-shadow);}
+    .forum-search-wrap input:focus{outline:none;border-color:var(--green);}
+    .search-icon{position:absolute;left:17px;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--charcoal-soft);}
+    .search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);
+      background:none;border:none;color:var(--charcoal-soft);cursor:pointer;font-size:1.1rem;display:none;}
+    .search-clear.visible{display:block;}
+
+    /* FORUM */
+    .forum-layout{display:grid;grid-template-columns:1fr 300px;gap:28px;padding-bottom:60px;}
+    .post-compose{background:#fff;border-radius:var(--radius);padding:20px;
+      box-shadow:var(--card-shadow);margin-bottom:20px;}
+    .post-compose textarea{width:100%;border:1.5px solid var(--cream-dark);border-radius:8px;
+      padding:12px;font-family:inherit;font-size:.95rem;resize:none;
+      color:var(--charcoal);background:var(--cream);transition:border-color .2s;}
+    .post-compose textarea:focus{outline:none;border-color:var(--green);}
+    .compose-actions{display:flex;justify-content:space-between;align-items:center;
+      margin-top:12px;flex-wrap:wrap;gap:10px;}
+    .tag-select{display:flex;gap:8px;flex-wrap:wrap;}
+    .tag{padding:5px 12px;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;
+      border:1.5px solid;transition:all .2s;user-select:none;}
+    .tag.opportunities{border-color:var(--forest);color:var(--forest);}
+    .tag.opportunities.active,.tag.opportunities:hover{background:var(--forest);color:#fff;}
+    .tag.resources{border-color:#c8901a;color:#c8901a;}
+    .tag.resources.active,.tag.resources:hover{background:var(--gold);color:var(--charcoal);}
+    .tag.general{border-color:var(--charcoal-soft);color:var(--charcoal-soft);}
+    .tag.general.active,.tag.general:hover{background:var(--charcoal-soft);color:#fff;}
+    .post-btn{background:var(--green);color:#fff;border:none;padding:9px 22px;border-radius:8px;
+      font-weight:700;font-size:.9rem;cursor:pointer;transition:background .2s;font-family:inherit;}
+    .post-btn:hover{background:var(--green-dark);}
+    .post-card{background:#fff;border-radius:var(--radius);padding:20px;
+      box-shadow:var(--card-shadow);margin-bottom:14px;transition:box-shadow .2s;}
+    .post-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);}
+    .post-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-weight:700;font-size:.85rem;color:#fff;flex-shrink:0;}
+    .post-author{font-weight:700;font-size:.92rem;}
+    .post-role{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:10px;}
+    .role-big{background:rgba(131,58,180,.12);color:var(--green-dark);}
+    .role-little{background:rgba(233,196,106,.2);color:#8a6200;}
+    .post-time{font-size:.78rem;color:var(--charcoal-soft);margin-left:auto;}
+    .post-body{color:var(--charcoal);line-height:1.65;font-size:.95rem;margin-bottom:14px;}
+    .post-footer{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .post-action{display:flex;align-items:center;gap:5px;font-size:.85rem;
+      color:var(--charcoal-soft);cursor:pointer;padding:5px 10px;border-radius:6px;
+      transition:all .2s;background:none;border:none;font-family:inherit;}
+    .post-action:hover{background:var(--cream);color:var(--green);}
+    .post-action.liked{color:#e04563;}
+    .post-action.helpful-done{color:var(--forest);pointer-events:none;}
+    .post-tag-badge{margin-left:auto;padding:3px 10px;border-radius:10px;font-size:.76rem;font-weight:700;}
+    .badge-opportunities{background:rgba(193,53,132,.1);color:var(--forest-dark);}
+    .badge-resources{background:rgba(233,196,106,.2);color:#8a6200;}
+    .badge-general{background:var(--cream-dark);color:var(--charcoal-soft);}
+    .reply-form{background:var(--cream);border-radius:8px;padding:12px;margin-top:10px;animation:fadeIn .2s ease;}
+    .reply-form textarea{width:100%;border:1.5px solid var(--cream-dark);border-radius:6px;
+      padding:10px;font-family:inherit;font-size:.88rem;resize:none;background:#fff;color:var(--charcoal);}
+    .reply-form textarea:focus{outline:none;border-color:var(--green);}
+    .reply-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+    .reply-cancel{background:none;border:1.5px solid var(--cream-dark);color:var(--charcoal-soft);
+      padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.85rem;font-family:inherit;}
+    .reply-submit{background:var(--green);color:#fff;border:none;padding:6px 14px;
+      border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit;}
+    .replies-list{margin-top:10px;padding-top:10px;border-top:1px solid var(--cream-dark);}
+    .reply-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--cream-dark);}
+    .reply-item:last-child{border-bottom:none;}
+    .reply-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-weight:700;font-size:.7rem;color:#fff;flex-shrink:0;}
+    .reply-author-name{font-weight:700;font-size:.82rem;margin-bottom:2px;}
+    .reply-body{font-size:.88rem;color:var(--charcoal-light);line-height:1.5;}
+    .no-results{text-align:center;color:var(--charcoal-soft);padding:40px;font-size:.95rem;}
+    .sidebar-card{background:#fff;border-radius:var(--radius);padding:20px;
+      box-shadow:var(--card-shadow);margin-bottom:16px;}
+    .sidebar-card h3{font-size:.95rem;font-weight:700;margin-bottom:14px;
+      padding-bottom:10px;border-bottom:1.5px solid var(--cream-dark);}
+    .sidebar-item{display:flex;align-items:center;gap:10px;padding:8px 0;
+      border-bottom:1px solid var(--cream-dark);font-size:.88rem;color:var(--charcoal-light);}
+    .sidebar-item:last-child{border-bottom:none;}
+    .sidebar-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+    .pro-name-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;
+      color:var(--green);}
+    .pro-name-link:hover{color:var(--green-dark);}
+    .trending-topic{cursor:pointer;transition:color .15s,background .15s;border-radius:6px;padding-left:6px;margin-left:-6px;}
+    .trending-topic:hover{color:var(--green);background:var(--cream);}
+
+    /* CAREERS */
+    .careers-search-wrap{max-width:440px;margin:0 auto 32px;position:relative;}
+    .careers-search-wrap input{width:100%;padding:12px 18px 12px 46px;
+      border:2px solid var(--cream-dark);border-radius:50px;font-size:.95rem;
+      font-family:inherit;background:#fff;color:var(--charcoal);
+      transition:border-color .2s;box-shadow:var(--card-shadow);}
+    .careers-search-wrap input:focus{outline:none;border-color:var(--green);}
+    .careers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+      gap:20px;padding-bottom:60px;}
+    .career-card{background:#fff;border-radius:var(--radius);padding:28px 20px;text-align:center;
+      box-shadow:var(--card-shadow);cursor:pointer;transition:all .25s;border:2px solid transparent;}
+    .career-card:hover{transform:translateY(-4px);border-color:var(--green);
+      box-shadow:0 8px 24px rgba(131,58,180,.18);}
+    .career-emoji{font-size:2.6rem;margin-bottom:12px;display:block;}
+    .career-title{font-size:.95rem;font-weight:700;margin-bottom:4px;}
+    .career-count{font-size:.78rem;color:var(--charcoal-soft);}
+    .career-detail{display:none;background:#fff;border-radius:var(--radius);padding:28px;
+      box-shadow:var(--card-shadow);margin-bottom:60px;animation:fadeIn .3s ease;}
+    .career-detail.active{display:block;}
+    .career-detail-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;
+      padding-bottom:20px;border-bottom:1.5px solid var(--cream-dark);}
+    .career-detail-icon{font-size:2.8rem;}
+    .career-detail-title{font-size:1.5rem;font-weight:800;}
+    .career-detail-sub{color:var(--charcoal-soft);font-size:.9rem;}
+    .back-btn{background:none;border:none;color:var(--green);font-weight:600;cursor:pointer;
+      font-size:.9rem;padding:0;margin-bottom:20px;display:flex;align-items:center;gap:6px;font-family:inherit;}
+    .back-btn:hover{color:var(--green-dark);}
+    .qa-compose{background:var(--cream);border-radius:10px;padding:16px;margin-bottom:20px;}
+    .qa-compose input{width:100%;border:1.5px solid var(--cream-dark);border-radius:8px;
+      padding:12px 14px;font-family:inherit;font-size:.95rem;color:var(--charcoal);
+      background:#fff;margin-bottom:10px;transition:border-color .2s;}
+    .qa-compose input:focus{outline:none;border-color:var(--green);}
+    .qa-card{border:1.5px solid var(--cream-dark);border-radius:10px;padding:18px;
+      margin-bottom:14px;background:var(--cream);}
+    .qa-question{font-weight:700;font-size:.98rem;margin-bottom:10px;}
+    .qa-answers{padding-left:16px;border-left:3px solid var(--green);margin-top:10px;}
+    .qa-answer{font-size:.9rem;color:var(--charcoal-light);padding:6px 0;
+      border-bottom:1px solid rgba(0,0,0,.04);line-height:1.55;}
+    .qa-answer:last-child{border-bottom:none;}
+    .verified-badge{display:inline-flex;align-items:center;gap:3px;
+      background:rgba(131,58,180,.1);color:var(--green-dark);font-size:.72rem;
+      font-weight:700;padding:2px 7px;border-radius:10px;}
+
+    /* COLLEGES */
+    .college-search-wrap{max-width:500px;margin:0 auto 36px;position:relative;}
+    .college-search-wrap input{width:100%;padding:14px 20px 14px 48px;
+      border:2px solid var(--cream-dark);border-radius:50px;font-size:1rem;font-family:inherit;
+      color:var(--charcoal);background:#fff;transition:border-color .2s;box-shadow:var(--card-shadow);}
+    .college-search-wrap input:focus{outline:none;border-color:var(--green);}
+    .colleges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+      gap:20px;padding-bottom:60px;}
+    .college-card{background:#fff;border-radius:var(--radius);padding:22px;
+      box-shadow:var(--card-shadow);cursor:pointer;transition:all .25s;border:2px solid transparent;}
+    .college-card:hover{transform:translateY(-3px);border-color:var(--green);
+      box-shadow:0 8px 24px rgba(131,58,180,.15);}
+    .college-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;}
+    .college-logo{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;
+      justify-content:center;font-size:1.4rem;flex-shrink:0;}
+    .college-name{font-size:1rem;font-weight:800;}
+    .college-location{font-size:.82rem;color:var(--charcoal-soft);margin-top:2px;}
+    .college-rating{margin-left:auto;text-align:right;}
+    .stars{color:var(--gold);font-size:.9rem;}
+    .rating-num{font-size:1rem;font-weight:800;}
+    .college-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+    .college-tag{background:var(--cream);color:var(--charcoal-soft);padding:3px 10px;
+      border-radius:20px;font-size:.76rem;font-weight:600;}
+    .college-preview{font-size:.87rem;color:var(--charcoal-light);line-height:1.55;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .college-footer{display:flex;align-items:center;margin-top:14px;padding-top:12px;
+      border-top:1.5px solid var(--cream-dark);font-size:.82rem;color:var(--charcoal-soft);gap:12px;}
+    .college-detail{display:none;animation:fadeIn .3s ease;padding-bottom:60px;}
+    .college-detail.active{display:block;}
+    .college-detail-banner{background:linear-gradient(135deg,#6228d7,#c13584);
+      border-radius:var(--radius);padding:32px;color:#fff;margin-bottom:24px;
+      display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+    .college-big-logo{width:72px;height:72px;border-radius:14px;display:flex;align-items:center;
+      justify-content:center;font-size:2.2rem;background:rgba(255,255,255,.15);}
+    .college-detail-name{font-size:1.6rem;font-weight:800;}
+    .college-detail-loc{color:rgba(255,255,255,.65);font-size:.9rem;margin-top:4px;}
+    .college-detail-stats{margin-left:auto;display:flex;gap:28px;flex-wrap:wrap;}
+    .detail-stat{text-align:center;}
+    .detail-stat-num{font-size:1.4rem;font-weight:800;color:#c8f0d8;}
+    .detail-stat-lbl{font-size:.75rem;color:rgba(255,255,255,.55);}
+    .college-tabs{display:flex;border-bottom:2px solid var(--cream-dark);margin-bottom:20px;
+      background:#fff;border-radius:10px 10px 0 0;overflow:hidden;}
+    .college-tab{padding:14px 24px;font-weight:600;font-size:.9rem;color:var(--charcoal-soft);
+      cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;
+      transition:all .2s;font-family:inherit;}
+    .college-tab:hover{color:var(--green);background:var(--cream);}
+    .college-tab.active{color:var(--green);border-bottom-color:var(--green);background:var(--cream);}
+    .college-tab-content{display:none;}
+    .college-tab-content.active{display:block;animation:fadeIn .25s ease;}
+    .review-card{background:#fff;border-radius:10px;padding:18px;margin-bottom:14px;
+      box-shadow:var(--card-shadow);}
+    .review-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .review-author{font-weight:700;font-size:.92rem;}
+    .review-year{font-size:.8rem;color:var(--charcoal-soft);}
+    .review-stars{color:var(--gold);font-size:.9rem;margin-left:auto;}
+    .review-body{font-size:.9rem;color:var(--charcoal-light);line-height:1.6;}
+    .rating-breakdown{background:#fff;border-radius:10px;padding:20px;
+      box-shadow:var(--card-shadow);margin-bottom:20px;}
+    .rating-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+    .rating-label{font-size:.85rem;width:140px;color:var(--charcoal-light);}
+    .rating-bar-bg{flex:1;height:8px;background:var(--cream-dark);border-radius:4px;overflow:hidden;}
+    .rating-bar-fill{height:100%;background:var(--green);border-radius:4px;}
+    .rating-val{font-size:.85rem;font-weight:700;width:28px;}
+    .star-selector{display:flex;gap:4px;cursor:pointer;font-size:1.4rem;}
+    .star-selector span{color:var(--cream-dark);transition:color .1s;}
+    .star-selector span.lit{color:var(--gold);}
+
+    /* MODALS */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+      z-index:200;align-items:center;justify-content:center;padding:20px;}
+    .modal-overlay.active{display:flex;}
+    .modal{background:#fff;border-radius:16px;padding:36px;width:90%;max-width:440px;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);animation:fadeIn .25s ease;position:relative;
+      max-height:90vh;overflow-y:auto;}
+    .modal.wide{max-width:560px;}
+    .modal h2{font-size:1.4rem;font-weight:800;margin-bottom:6px;}
+    .modal-sub{color:var(--charcoal-soft);font-size:.9rem;margin-bottom:22px;}
+    .modal-tabs{display:flex;border-bottom:2px solid var(--cream-dark);margin-bottom:20px;}
+    .modal-tab{flex:1;padding:10px;text-align:center;font-weight:600;font-size:.9rem;
+      cursor:pointer;border:none;background:none;color:var(--charcoal-soft);
+      border-bottom:3px solid transparent;font-family:inherit;}
+    .modal-tab.active{color:var(--green);border-bottom-color:var(--green);}
+    .form-group{margin-bottom:14px;}
+    .form-group label{display:block;font-size:.85rem;font-weight:600;
+      color:var(--charcoal-light);margin-bottom:5px;}
+    .form-group input,.form-group select{width:100%;padding:11px 14px;
+      border:1.5px solid var(--cream-dark);border-radius:8px;font-family:inherit;
+      font-size:.95rem;color:var(--charcoal);transition:border-color .2s;}
+    .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--green);}
+    .form-submit{width:100%;background:var(--green);color:#fff;border:none;padding:13px;
+      border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:6px;
+      transition:background .2s;font-family:inherit;}
+    .form-submit:hover{background:var(--green-dark);}
+    .form-submit:disabled{background:var(--charcoal-soft);cursor:not-allowed;}
+    .form-error{background:#fee;border:1px solid #fbb;color:#c00;padding:10px 14px;
+      border-radius:8px;font-size:.85rem;margin-bottom:12px;display:none;}
+    .form-error.visible{display:block;}
+    .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;
+      font-size:1.4rem;cursor:pointer;color:var(--charcoal-soft);}
+    .profile-header{display:flex;align-items:center;gap:20px;margin-bottom:24px;
+      padding-bottom:20px;border-bottom:1.5px solid var(--cream-dark);}
+    .profile-big-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:1.6rem;font-weight:800;color:#fff;flex-shrink:0;}
+    .profile-name{font-size:1.3rem;font-weight:800;margin-bottom:4px;}
+    .profile-title{font-size:.88rem;color:var(--charcoal-soft);}
+    .profile-field{font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:10px;
+      background:rgba(131,58,180,.1);color:var(--green-dark);margin-top:5px;display:inline-block;}
+    .profile-bio{font-size:.92rem;line-height:1.65;color:var(--charcoal-light);margin-bottom:20px;}
+    .profile-section-title{font-size:.85rem;font-weight:700;color:var(--charcoal-soft);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+    .profile-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+    .profile-tag{background:var(--cream);padding:4px 12px;border-radius:20px;
+      font-size:.82rem;color:var(--charcoal-light);font-weight:600;}
+    .profile-open-item{display:flex;align-items:center;gap:8px;font-size:.88rem;
+      color:var(--charcoal-light);padding:4px 0;}
+    .connect-btn{width:100%;background:var(--green);color:#fff;border:none;padding:12px;
+      border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:16px;
+      font-family:inherit;transition:background .2s;}
+    .connect-btn:hover{background:var(--green-dark);}
+    .my-post-item{background:var(--cream);border-radius:8px;padding:12px;margin-bottom:10px;
+      font-size:.88rem;border-left:3px solid var(--green);}
+    .my-post-item .meta{color:var(--charcoal-soft);font-size:.76rem;margin-bottom:4px;}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+      background:var(--charcoal);color:#fff;padding:12px 24px;border-radius:50px;
+      font-size:.9rem;font-weight:600;z-index:999;transition:transform .35s ease;
+      box-shadow:0 4px 20px rgba(0,0,0,.25);}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+
+    footer{background:var(--charcoal);color:rgba(255,255,255,.6);text-align:center;
+      padding:28px;font-size:.85rem;}
+    footer a{color:#d4b0f5;text-decoration:none;}
+
+    /* ── PROFILE PAGE (full-screen slide-over) ── */
+    #profile-page{position:fixed;inset:0;background:var(--cream);z-index:300;
+      overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);}
+    #profile-page.active{transform:translateX(0);}
+    .ppg-header{background:var(--charcoal);padding:0 32px;height:56px;display:flex;
+      align-items:center;gap:16px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .ppg-back{background:none;border:none;color:#e0b4f5;font-size:.92rem;font-weight:600;
+      cursor:pointer;padding:6px 0;font-family:inherit;display:flex;align-items:center;gap:6px;}
+    .ppg-back:hover{color:#fff;}
+    .ppg-header-title{color:rgba(255,255,255,.65);font-size:.92rem;}
+    .ppg-hero{background:linear-gradient(135deg,#405de6,#833ab4,#c13584);padding:36px 40px;
+      display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+    .ppg-avatar{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:1.7rem;font-weight:800;color:#fff;
+      border:3px solid rgba(255,255,255,.4);flex-shrink:0;}
+    .ppg-name{font-size:1.4rem;font-weight:800;color:#fff;}
+    .ppg-role-label{color:rgba(255,255,255,.75);font-size:.88rem;margin-top:3px;}
+    .ppg-email-label{color:rgba(255,255,255,.5);font-size:.78rem;margin-top:2px;}
+    .ppg-body{max-width:780px;margin:0 auto;padding:28px 20px 60px;}
+    .ppg-tabs{display:flex;border-bottom:2px solid var(--cream-dark);margin-bottom:24px;
+      background:#fff;border-radius:12px 12px 0 0;overflow:hidden;box-shadow:var(--card-shadow);}
+    .ppg-tab{flex:1;padding:14px;text-align:center;font-weight:600;font-size:.9rem;
+      cursor:pointer;border:none;background:none;color:var(--charcoal-soft);
+      border-bottom:3px solid transparent;font-family:inherit;transition:all .2s;}
+    .ppg-tab:hover{color:var(--green);background:var(--cream);}
+    .ppg-tab.active{color:var(--green);border-bottom-color:var(--green);background:var(--cream);}
+    .ppg-tab-content{display:none;}
+    .ppg-tab-content.active{display:block;animation:fadeIn .25s ease;}
+    .ppg-section{background:#fff;border-radius:var(--radius);padding:24px;
+      box-shadow:var(--card-shadow);margin-bottom:20px;}
+    .ppg-section h3{font-size:.95rem;font-weight:700;margin-bottom:16px;
+      padding-bottom:10px;border-bottom:1.5px solid var(--cream-dark);}
+    .ppg-field{margin-bottom:14px;}
+    .ppg-field label{display:block;font-size:.84rem;font-weight:600;
+      color:var(--charcoal-light);margin-bottom:5px;}
+    .ppg-field input,.ppg-field textarea{width:100%;padding:10px 13px;
+      border:1.5px solid var(--cream-dark);border-radius:8px;font-family:inherit;
+      font-size:.92rem;color:var(--charcoal);background:var(--cream);transition:border-color .2s;}
+    .ppg-field input:focus,.ppg-field textarea:focus{outline:none;border-color:var(--green);background:#fff;}
+    .ppg-field textarea{resize:vertical;min-height:80px;}
+    .ppg-save-btn{background:var(--green);color:#fff;border:none;padding:9px 22px;
+      border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;
+      transition:background .2s;}
+    .ppg-save-btn:hover{background:var(--green-dark);}
+    .interest-tag{display:inline-flex;padding:5px 13px;border-radius:20px;font-size:.79rem;
+      font-weight:600;cursor:pointer;border:1.5px solid var(--cream-dark);
+      color:var(--charcoal-soft);background:#fff;transition:all .15s;user-select:none;margin:3px;}
+    .interest-tag.selected,.interest-tag:hover{background:var(--green);color:#fff;border-color:var(--green);}
+    .check-pill{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;
+      border-radius:20px;font-size:.79rem;font-weight:600;cursor:pointer;
+      border:1.5px solid var(--cream-dark);color:var(--charcoal-soft);
+      background:#fff;transition:all .15s;user-select:none;margin:3px;}
+    .check-pill.selected{background:var(--sage);color:#fff;border-color:var(--sage);}
+    .notif-item{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--cream-dark);
+      align-items:flex-start;cursor:pointer;transition:background .15s;}
+    .notif-item:last-child{border-bottom:none;}
+    .notif-item:hover{background:var(--cream);margin:0 -4px;padding:13px 4px;border-radius:8px;}
+    .notif-dot{width:9px;height:9px;border-radius:50%;background:var(--green);
+      flex-shrink:0;margin-top:5px;transition:background .2s;}
+    .notif-dot.read{background:var(--cream-dark);}
+    .notif-text{font-size:.9rem;color:var(--charcoal);line-height:1.5;}
+    .notif-time{font-size:.74rem;color:var(--charcoal-soft);margin-top:2px;}
+    .notif-empty{text-align:center;color:var(--charcoal-soft);padding:36px 20px;font-size:.9rem;}
+    .connect-form{background:var(--cream);border-radius:10px;padding:16px;margin-top:14px;animation:fadeIn .2s ease;}
+    .connect-form textarea{width:100%;border:1.5px solid var(--cream-dark);border-radius:8px;
+      padding:10px 12px;font-family:inherit;font-size:.9rem;resize:none;
+      background:#fff;color:var(--charcoal);margin-bottom:10px;}
+    .connect-form textarea:focus{outline:none;border-color:var(--green);}
+    .notif-badge{background:#e1306c;color:#fff;font-size:.62rem;font-weight:800;
+      padding:1px 6px;border-radius:9px;margin-left:4px;vertical-align:middle;line-height:1.6;}
+    .reg-extra{margin-top:10px;border-top:1.5px solid var(--cream-dark);padding-top:12px;display:none;}
+    .reg-section-label{font-size:.76rem;font-weight:700;color:var(--green);
+      text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+    .viewing-profile-banner{background:linear-gradient(135deg,#6228d7,#c13584);
+      border-radius:var(--radius);padding:26px;color:#fff;margin-bottom:20px;
+      display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+    .opp-post-item{background:var(--cream);border-radius:8px;padding:12px 14px;
+      margin-bottom:10px;border-left:3px solid var(--forest);cursor:pointer;transition:background .15s;}
+    .opp-post-item:hover{background:var(--cream-dark);}
+    .opp-post-meta{font-size:.76rem;color:var(--charcoal-soft);margin-bottom:4px;}
+    .opp-post-text{font-size:.88rem;color:var(--charcoal-light);line-height:1.45;}
+
+    @media(max-width:768px){
+      nav{padding:0 16px;}
+      .tab-btn{padding:14px 12px;font-size:.82rem;}
+      .forum-layout{grid-template-columns:1fr;}
+      .college-detail-stats{margin-left:0;}
+      .ppg-hero{padding:24px 20px;}
+      .ppg-body{padding:20px 14px 50px;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- ══════════════════════════════════════════════
+     SETUP OVERLAY — shown until Supabase config is pasted
+══════════════════════════════════════════════ -->
+<div id="setup-overlay">
+  <div class="setup-box">
+    <div class="setup-logo">
+      <div class="setup-logo-icon">🌸</div>
+      <div class="setup-logo-text">Spark<span>root</span> — Supabase Setup</div>
+    </div>
+    <div class="setup-title">Almost ready! Complete these 4 steps.</div>
+    <p class="setup-sub">Supabase is the free, easy alternative to Firebase. No credit card needed. Takes about 10 minutes.</p>
+
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Create a free Supabase account &amp; project</h3>
+        <p>Go to <a href="https://supabase.com" target="_blank">supabase.com</a>, click <strong>"Start your project"</strong>, and sign in with GitHub or email. Then click <strong>"New project"</strong>, name it <em>sparkroot</em>, set any database password, pick the closest region, and click <strong>Create new project</strong>. Wait about 1 minute for it to set up.</p>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Copy your Project URL &amp; anon key</h3>
+        <p>In your project dashboard, click <strong>Settings</strong> (gear icon) → <strong>API</strong>. You'll see two things to copy:</p>
+        <p>• <strong>Project URL</strong> — looks like <code>https://abcdef.supabase.co</code><br/>• <strong>anon public</strong> key — a long string starting with <code>eyJ...</code></p>
+        <p>Open this HTML file in a text editor, find the section marked:<br/><span class="step-code">// ▼▼▼ PASTE YOUR SUPABASE CONFIG HERE ▼▼▼</span><br/>and replace the two placeholder values with your real ones.</p>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Create your database tables</h3>
+        <p>In your Supabase project, click <strong>SQL Editor</strong> in the left sidebar, then click <strong>New query</strong>. Paste the entire block below and click <strong>Run</strong>:</p>
+        <div class="step-code" style="font-size:.76rem;line-height:1.6;white-space:pre-wrap;">create table profiles (id uuid references auth.users primary key, name text not null, email text, role text not null default 'little', bio text, resume_url text, school text, interests text[] default '{}', colleges_looking text[] default '{}', career_fields text[] default '{}', education text, company text, location text, willing_to text[] default '{}', created_at timestamptz default now());
+create table posts (id uuid default gen_random_uuid() primary key, author_id uuid, author_name text, author_role text, subtitle text, tag text default 'general', text text, liked_by text[] default '{}', helpful_by text[] default '{}', replies jsonb default '[]', created_at timestamptz default now());
+create table career_questions (id uuid default gen_random_uuid() primary key, career_key text, question text, asked_by text, asked_by_id uuid, answer text, created_at timestamptz default now());
+create table college_reviews (id uuid default gen_random_uuid() primary key, college_id text, author_id uuid, author_name text, stars numeric default 5, safety_stars integer default 5, support_stars integer default 5, inclusivity_stars integer default 5, social_stars integer default 5, academics_stars integer default 5, text text, created_at timestamptz default now());
+create table college_questions (id uuid default gen_random_uuid() primary key, college_id text, question text, asked_by text, asked_by_id uuid, answer text, created_at timestamptz default now());
+create table notifications (id uuid default gen_random_uuid() primary key, user_id uuid not null, type text, message text, read boolean default false, created_at timestamptz default now());
+alter table profiles enable row level security;
+alter table posts enable row level security;
+alter table career_questions enable row level security;
+alter table college_reviews enable row level security;
+alter table college_questions enable row level security;
+alter table notifications enable row level security;
+create policy "Public read profiles" on profiles for select using (true);
+create policy "Own insert profile" on profiles for insert with check (auth.uid() = id);
+create policy "Own update profile" on profiles for update using (auth.uid() = id);
+create policy "Public read posts" on posts for select using (true);
+create policy "Auth insert post" on posts for insert with check (auth.role() = 'authenticated');
+create policy "Auth update post" on posts for update using (auth.role() = 'authenticated');
+create policy "Public read career_questions" on career_questions for select using (true);
+create policy "Auth insert career_question" on career_questions for insert with check (auth.role() = 'authenticated');
+create policy "Auth update career_question" on career_questions for update using (auth.role() = 'authenticated');
+create policy "Public read college_reviews" on college_reviews for select using (true);
+create policy "Auth insert college_review" on college_reviews for insert with check (auth.role() = 'authenticated');
+create policy "Public read college_questions" on college_questions for select using (true);
+create policy "Auth insert college_question" on college_questions for insert with check (auth.role() = 'authenticated');
+create policy "Own read notifications" on notifications for select using (auth.uid() = user_id);
+create policy "Auth insert notification" on notifications for insert with check (auth.role() = 'authenticated');
+create policy "Own update notification" on notifications for update using (auth.uid() = user_id);
+alter publication supabase_realtime add table posts;</div>
+        <div class="setup-warn">⚠️ You only need to run this SQL once. If you see errors about tables already existing, that's fine — just ignore them.<br/><br/>
+          <strong>Already set up previously?</strong> Run this extra SQL to add new features (profiles, notifications, college ratings):
+          <div style="background:#1e2a38;color:#d4b0f5;padding:10px 14px;border-radius:8px;font-family:monospace;font-size:.76rem;margin-top:6px;white-space:pre-wrap;">-- College review category columns
+alter table college_reviews add column if not exists safety_stars integer default 5;
+alter table college_reviews add column if not exists support_stars integer default 5;
+alter table college_reviews add column if not exists inclusivity_stars integer default 5;
+alter table college_reviews add column if not exists social_stars integer default 5;
+alter table college_reviews add column if not exists academics_stars integer default 5;
+alter table college_reviews alter column stars type numeric;
+create policy "Auth update career_question" on career_questions for update using (auth.role() = 'authenticated');
+-- Profile extended fields
+alter table profiles add column if not exists bio text;
+alter table profiles add column if not exists resume_url text;
+alter table profiles add column if not exists school text;
+alter table profiles add column if not exists interests text[] default '{}';
+alter table profiles add column if not exists colleges_looking text[] default '{}';
+alter table profiles add column if not exists career_fields text[] default '{}';
+alter table profiles add column if not exists education text;
+alter table profiles add column if not exists company text;
+alter table profiles add column if not exists location text;
+alter table profiles add column if not exists willing_to text[] default '{}';
+-- Notifications table
+create table if not exists notifications (id uuid default gen_random_uuid() primary key, user_id uuid not null, type text, message text, read boolean default false, created_at timestamptz default now());
+alter table notifications enable row level security;
+create policy "Own read notifications" on notifications for select using (auth.uid() = user_id);
+create policy "Auth insert notification" on notifications for insert with check (auth.role() = 'authenticated');
+create policy "Own update notification" on notifications for update using (auth.uid() = user_id);</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step" style="border-bottom:none;margin-bottom:0;">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Save and deploy to Netlify</h3>
+        <p>Once your config is pasted and saved, go to <a href="https://netlify.com/drop" target="_blank">netlify.com/drop</a>, drag and drop this <strong>sparkroot.html</strong> file, and you're live! Your site will be at a URL like <code>sparkroot-abc123.netlify.app</code>.</p>
+      </div>
+    </div>
+
+    <button class="setup-btn" onclick="document.getElementById('setup-overlay').style.display='none'">I've done all 4 steps — Continue →</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">🌸</div>
+    <span class="logo-text">Spark<span>root</span></span>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <button class="nav-btn outline" onclick="openModal('login')">Sign In</button>
+    <button class="nav-btn solid"   onclick="openModal('register')">Join Free</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- Left vine — crawls up from bottom-left -->
+  <svg class="engrave" style="bottom:0;left:0;opacity:.28;" width="190" height="450" viewBox="0 0 190 450" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main stem -->
+    <path d="M 42,450 C 26,422 52,397 35,368 C 20,341 46,315 29,286 C 15,259 40,232 24,203 C 10,176 34,148 20,119 C 8,93 28,65 18,37 C 11,16 23,-6 30,-22" stroke-width="1.4"/>
+    <!-- Branch 1 + leaf (~y 368) -->
+    <path d="M 35,368 C 58,359 80,367 100,357" stroke-width="1"/>
+    <path d="M 100,357 C 113,347 122,354 116,366 C 111,375 100,373 100,357" stroke-width="0.9"/>
+    <!-- Branch 2 + leaf (~y 286) -->
+    <path d="M 29,286 C 52,276 74,284 94,273" stroke-width="1"/>
+    <path d="M 94,273 C 107,263 116,270 110,282 C 105,291 94,289 94,273" stroke-width="0.9"/>
+    <!-- Branch 3 + leaf (~y 203) -->
+    <path d="M 24,203 C 47,193 68,201 88,191" stroke-width="1"/>
+    <path d="M 88,191 C 101,181 110,188 104,200 C 99,209 88,207 88,191" stroke-width="0.9"/>
+    <!-- Branch 4 + leaf (~y 119) -->
+    <path d="M 20,119 C 42,109 63,117 82,107" stroke-width="1"/>
+    <path d="M 82,107 C 95,97 104,104 98,116 C 93,125 82,123 82,107" stroke-width="0.9"/>
+    <!-- Small side leaf on stem, going left (~y 286) -->
+    <path d="M 29,286 C 14,277 6,264 12,257 C 18,250 29,258 29,286" stroke-width="0.85"/>
+    <!-- Small side leaf (~y 203) -->
+    <path d="M 24,203 C 10,195 3,182 9,175 C 15,168 24,176 24,203" stroke-width="0.85"/>
+    <!-- Tendril 1 (~y 327) -->
+    <path d="M 46,327 C 58,318 63,304 54,298 C 47,294 41,301 47,309" stroke-width="0.8"/>
+    <!-- Tendril 2 (~y 244) -->
+    <path d="M 35,244 C 47,235 51,221 43,215 C 37,211 31,218 37,226" stroke-width="0.8"/>
+    <!-- Tendril 3 (~y 160) -->
+    <path d="M 27,160 C 39,151 43,137 35,131 C 29,127 23,134 29,142" stroke-width="0.8"/>
+    <!-- Buds near top -->
+    <circle cx="20" cy="37" r="3.5" stroke-width="1"/>
+    <circle cx="18" cy="8" r="2.5" stroke-width="0.9"/>
+  </svg>
+
+  <!-- Right vine — crawls up from bottom-right (mirrored) -->
+  <svg class="engrave" style="bottom:0;right:0;opacity:.28;" width="190" height="450" viewBox="0 0 190 450" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main stem -->
+    <path d="M 148,450 C 164,422 138,397 155,368 C 170,341 144,315 161,286 C 175,259 150,232 166,203 C 180,176 156,148 170,119 C 182,93 162,65 172,37 C 179,16 167,-6 160,-22" stroke-width="1.4"/>
+    <!-- Branch 1 + leaf (~y 368) -->
+    <path d="M 155,368 C 132,359 110,367 90,357" stroke-width="1"/>
+    <path d="M 90,357 C 77,347 68,354 74,366 C 79,375 90,373 90,357" stroke-width="0.9"/>
+    <!-- Branch 2 + leaf (~y 286) -->
+    <path d="M 161,286 C 138,276 116,284 96,273" stroke-width="1"/>
+    <path d="M 96,273 C 83,263 74,270 80,282 C 85,291 96,289 96,273" stroke-width="0.9"/>
+    <!-- Branch 3 + leaf (~y 203) -->
+    <path d="M 166,203 C 143,193 122,201 102,191" stroke-width="1"/>
+    <path d="M 102,191 C 89,181 80,188 86,200 C 91,209 102,207 102,191" stroke-width="0.9"/>
+    <!-- Branch 4 + leaf (~y 119) -->
+    <path d="M 170,119 C 148,109 127,117 108,107" stroke-width="1"/>
+    <path d="M 108,107 C 95,97 86,104 92,116 C 97,125 108,123 108,107" stroke-width="0.9"/>
+    <!-- Small side leaf on stem, going right (~y 286) -->
+    <path d="M 161,286 C 176,277 184,264 178,257 C 172,250 161,258 161,286" stroke-width="0.85"/>
+    <!-- Small side leaf (~y 203) -->
+    <path d="M 166,203 C 180,195 187,182 181,175 C 175,168 166,176 166,203" stroke-width="0.85"/>
+    <!-- Tendril 1 (~y 327) -->
+    <path d="M 144,327 C 132,318 127,304 136,298 C 143,294 149,301 143,309" stroke-width="0.8"/>
+    <!-- Tendril 2 (~y 244) -->
+    <path d="M 155,244 C 143,235 139,221 147,215 C 153,211 159,218 153,226" stroke-width="0.8"/>
+    <!-- Tendril 3 (~y 160) -->
+    <path d="M 163,160 C 151,151 147,137 155,131 C 161,127 167,134 161,142" stroke-width="0.8"/>
+    <!-- Buds near top -->
+    <circle cx="170" cy="37" r="3.5" stroke-width="1"/>
+    <circle cx="172" cy="8" r="2.5" stroke-width="0.9"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-badge">🌸 Mentorship · Career · Community</div>
+    <h1>Where <span>Women Grow</span><br/>Together</h1>
+    <p>A community connecting career professionals ("Bigs") with high school and college women ("Littles") — through advice, opportunities, and real stories.</p>
+    <div class="hero-ctas" id="hero-ctas">
+      <button class="cta-btn primary" onclick="openModal('register')">Join as a Little →</button>
+      <button class="cta-btn secondary" onclick="openModal('big')">Become a Big</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">2,400+</div><div class="stat-label">Active Members</div></div>
+      <div class="stat"><div class="stat-num">18</div><div class="stat-label">Career Fields</div></div>
+      <div class="stat"><div class="stat-num">350+</div><div class="stat-label">Colleges Listed</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION TABS -->
+<div class="section-tabs">
+  <button class="tab-btn active" onclick="showSection('forum',this)">📋 Community Board</button>
+  <button class="tab-btn"        onclick="showSection('careers',this)">💼 Career Fields</button>
+  <button class="tab-btn"        onclick="showSection('colleges',this)">🎓 College Hub</button>
+</div>
+
+<!-- FORUM -->
+<div id="section-forum" class="section-content active">
+  <div class="container">
+    <div class="section-header">
+      <h2>Community Board</h2>
+      <p>Bigs share opportunities, advice, and resources. Littles ask questions and connect.</p>
+    </div>
+    <div class="forum-search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="forum-search" placeholder="Search posts…" oninput="filterForum(this.value)"/>
+      <button class="search-clear" id="forum-search-clear" onclick="clearForumSearch()">✕</button>
+    </div>
+    <div class="forum-layout">
+      <div>
+        <div class="post-compose">
+          <textarea id="forum-textarea" rows="3" placeholder="Share an opportunity, resource, or message for your community…"></textarea>
+          <div class="compose-actions">
+            <div class="tag-select" id="tag-select">
+              <span class="tag opportunities active" onclick="toggleTag(this,'opportunities')">📌 Opportunity</span>
+              <span class="tag resources"            onclick="toggleTag(this,'resources')">📚 Resource</span>
+              <span class="tag general"              onclick="toggleTag(this,'general')">💬 General</span>
+            </div>
+            <button class="post-btn" onclick="submitForumPost()">Post →</button>
+          </div>
+        </div>
+        <div id="forum-posts-list"><div class="loading-posts"><div class="spinner"></div><br/>Loading posts…</div></div>
+      </div>
+      <div>
+        <div class="sidebar-card">
+          <h3>🔥 Trending Topics</h3>
+          <div class="sidebar-item trending-topic" onclick="searchTopic('internship')"><div class="sidebar-dot"></div>Internship season tips</div>
+          <div class="sidebar-item trending-topic" onclick="searchTopic('LSAT')"><div class="sidebar-dot"></div>LSAT prep resources</div>
+          <div class="sidebar-item trending-topic" onclick="searchTopic('remote work')"><div class="sidebar-dot"></div>Remote work as a new grad</div>
+          <div class="sidebar-item trending-topic" onclick="searchTopic('negotiating')"><div class="sidebar-dot"></div>Negotiating your first offer</div>
+          <div class="sidebar-item trending-topic" onclick="searchTopic('medicine')"><div class="sidebar-dot"></div>Work-life balance in medicine</div>
+        </div>
+        <div class="sidebar-card">
+          <h3>✨ Active Bigs This Week</h3>
+          <div class="sidebar-item">🌟 <span class="pro-name-link" onclick="openProfile('jordan')">Jordan M.</span> — Law</div>
+          <div class="sidebar-item">💙 <span class="pro-name-link" onclick="openProfile('rena')">Dr. Rena P.</span> — Medicine</div>
+          <div class="sidebar-item">⚡ <span class="pro-name-link" onclick="openProfile('tanya')">Tanya W.</span> — Tech</div>
+          <div class="sidebar-item">📊 <span class="pro-name-link" onclick="openProfile('priya')">Priya S.</span> — Finance</div>
+          <div class="sidebar-item">🎨 <span class="pro-name-link" onclick="openProfile('morgan')">Morgan K.</span> — Media</div>
+        </div>
+        <div class="sidebar-card">
+          <h3>📌 Upcoming Events</h3>
+          <div class="sidebar-item">Thu Office Hours w/ Tanya W.</div>
+          <div class="sidebar-item">Apr 5 — Spring Networking Night</div>
+          <div class="sidebar-item">Apr 12 — Legal Career Panel</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAREERS -->
+<div id="section-careers" class="section-content">
+  <div class="container">
+    <div class="section-header">
+      <h2>Career Fields</h2>
+      <p>Select a field to ask questions, get verified answers, and connect with professionals.</p>
+    </div>
+    <div id="career-grid-wrapper">
+      <div class="careers-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search career fields…" oninput="filterCareers(this.value)"/>
+      </div>
+      <div id="career-grid" class="careers-grid"></div>
+    </div>
+    <div id="career-detail" class="career-detail">
+      <button class="back-btn" onclick="backToGrid()">← Back to Career Fields</button>
+      <div class="career-detail-header">
+        <div id="detail-icon" class="career-detail-icon"></div>
+        <div><div id="detail-title" class="career-detail-title"></div><div id="detail-sub" class="career-detail-sub"></div></div>
+      </div>
+      <div class="qa-compose">
+        <input type="text" id="career-question-input" placeholder="Ask a question about this career field…"/>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="post-btn" onclick="submitCareerQuestion()">Ask Question →</button>
+        </div>
+      </div>
+      <div id="career-qa-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COLLEGES -->
+<div id="section-colleges" class="section-content">
+  <div class="container">
+    <div class="section-header">
+      <h2>College Hub</h2>
+      <p>Find honest reviews, ratings, and answers from women who've been there.</p>
+    </div>
+    <div id="college-grid-wrapper">
+      <div class="college-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search colleges…" oninput="filterColleges(this.value)"/>
+      </div>
+      <div id="college-grid" class="colleges-grid"></div>
+    </div>
+    <div id="college-detail" class="college-detail"></div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal" class="modal-overlay" onclick="closeModalOutside(event,'auth-modal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+    <h2 id="modal-title">Welcome Back</h2>
+    <p class="modal-sub" id="modal-sub">Sign in to your Sparkroot account</p>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tab-login"    onclick="switchModalTab('login')">Sign In</button>
+      <button class="modal-tab"        id="tab-register" onclick="switchModalTab('register')">Join Free</button>
+    </div>
+    <div id="modal-login-form">
+      <div class="form-error" id="login-error"></div>
+      <div class="form-group"><label>Email address</label><input type="email" id="login-email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"/></div>
+      <button class="form-submit" id="login-submit" onclick="handleLogin()">Sign In →</button>
+    </div>
+    <div id="modal-register-form" style="display:none">
+      <div class="form-error" id="register-error"></div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="Jane Doe"/></div>
+      <div class="form-group"><label>Email address</label><input type="email" id="reg-email" placeholder="you@example.com"/></div>
+      <div class="form-group">
+        <label>I am a…</label>
+        <select id="reg-role" onchange="toggleRegExtraFields()">
+          <option value="">Select role</option>
+          <option value="little">Little — High school / College student</option>
+          <option value="big">Big — Career professional / Mentor</option>
+        </select>
+      </div>
+      <!-- Little extra fields -->
+      <div class="reg-extra" id="reg-little-extra"></div>
+      <!-- Big extra fields -->
+      <div class="reg-extra" id="reg-big-extra"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="Create a password"/></div>
+      <button class="form-submit" id="register-submit" onclick="handleRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal" class="modal-overlay" onclick="closeModalOutside(event,'profile-modal')">
+  <div class="modal wide">
+    <button class="modal-close" onclick="closeModal('profile-modal')">✕</button>
+    <div id="profile-modal-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FULL-SCREEN PROFILE PAGE
+══════════════════════════════════════════════ -->
+<div id="profile-page">
+  <!-- Header bar -->
+  <div class="ppg-header">
+    <button class="ppg-back" onclick="closeProfilePage()">← Back to Sparkroot</button>
+    <div class="ppg-header-title">My Profile</div>
+  </div>
+  <!-- Hero -->
+  <div class="ppg-hero">
+    <div class="ppg-avatar" id="ppg-avatar"></div>
+    <div>
+      <div class="ppg-name" id="ppg-name"></div>
+      <div class="ppg-role-label" id="ppg-role-label"></div>
+      <div class="ppg-email-label" id="ppg-email-label"></div>
+    </div>
+  </div>
+  <!-- Tabs + content -->
+  <div class="ppg-body">
+    <div class="ppg-tabs">
+      <button class="ppg-tab active" data-tab="profile" onclick="switchPPGTab('profile')">👤 My Profile</button>
+      <button class="ppg-tab" data-tab="messages" onclick="switchPPGTab('messages')">
+        📬 Messages<span id="notif-badge-ppg" class="notif-badge" style="display:none"></span>
+      </button>
+    </div>
+    <div id="ppg-content-profile" class="ppg-tab-content active">
+      <div class="ppg-section"><div class="notif-empty">Loading profile…</div></div>
+    </div>
+    <div id="ppg-content-messages" class="ppg-tab-content">
+      <div class="ppg-section"><div class="notif-empty">Loading messages…</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>© 2026 Sparkroot &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a></div>
+  <div style="margin-top:6px;">Empowering women at every stage of the journey 🌸</div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ▼▼▼ PASTE YOUR SUPABASE CONFIG HERE ▼▼▼
+   Get these from: supabase.com → Your Project → Settings → API
+   • Project URL  (looks like https://abcxyz.supabase.co)
+   • anon public  (long string starting with eyJ...)
+══════════════════════════════════════════════════════════════ */
+const SUPABASE_URL      = "https://oytgbspbenqoejavrmzr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dGdic3BiZW5xb2VqYXZybXpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDQ0MjgsImV4cCI6MjA4OTc4MDQyOH0.XkL1X8lj4S3YtNy-GQjqHSuOXYE4qc_0-lKfRd-8qV4";
+/* ▲▲▲ END OF CONFIG SECTION ▲▲▲ */
+
+// Detect unconfigured state
+const CONFIGURED = SUPABASE_URL !== "PASTE_YOUR_PROJECT_URL_HERE";
+if (!CONFIGURED) document.getElementById('setup-overlay').style.display = 'block';
+
+// Supabase client intentionally NOT created — using direct REST API to avoid DataCloneError bug
+
+/* ──────────────────────────────────────────────────────────
+   HELPERS
+────────────────────────────────────────────────────────── */
+const AV_COLORS = ['#833ab4','#c13584','#6228d7','#fd1d1d','#f77737','#405de6','#d4607a','#e1306c'];
+function avaColor(s){let h=0;for(let c of (s||'?'))h=c.charCodeAt(0)+((h<<5)-h);return AV_COLORS[Math.abs(h)%AV_COLORS.length];}
+function initials(n){return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function fmtTime(ts){
+  if(!ts) return 'Just now';
+  const d = new Date(ts);
+  const s = Math.floor((Date.now()-d)/1000);
+  if(s<60) return 'Just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  if(s<604800) return Math.floor(s/86400)+'d ago';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ──────────────────────────────────────────────────────────
+   AUTH STATE
+────────────────────────────────────────────────────────── */
+let currentUser = null;
+let currentToken = null;
+
+/* ── REST helpers (bypasses Supabase client to avoid DataCloneError) ── */
+function authHeaders(extra){
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentToken||SUPABASE_ANON_KEY}`, ...extra };
+}
+async function dbGet(path){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: authHeaders() });
+  if(!r.ok) throw new Error('DB read failed');
+  return r.json();
+}
+async function dbPost(table, body){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method:'POST', headers: authHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.message||'DB write failed'); }
+}
+async function dbPatch(table, id, body){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method:'PATCH', headers: authHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.message||'DB update failed'); }
+}
+
+async function loadProfile(userId, email) {
+  try {
+    const rows = await dbGet(`profiles?id=eq.${userId}&select=*&limit=1`);
+    const data = rows && rows[0];
+    return data ? { uid: userId, ...data } : { uid: userId, name: email, email, role: 'little' };
+  } catch(e) {
+    return { uid: userId, name: email, email, role: 'little' };
+  }
+}
+
+// Restore session from localStorage — with token refresh so login persists across browser sessions
+(async () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('sparkroot_session') || 'null');
+    if (!saved || !saved.access_token || !saved.user) return;
+    let token = saved.access_token;
+    // Try to verify token; if expired, use refresh_token to get a new one
+    try {
+      const check = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers:{ 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      if (!check.ok && saved.refresh_token) {
+        const ref = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+          method:'POST',
+          headers:{ 'apikey': SUPABASE_ANON_KEY, 'Content-Type':'application/json' },
+          body: JSON.stringify({ refresh_token: saved.refresh_token })
+        });
+        if (ref.ok) {
+          const nd = await ref.json();
+          token = nd.access_token;
+          localStorage.setItem('sparkroot_session', JSON.stringify({
+            access_token: nd.access_token,
+            refresh_token: nd.refresh_token,
+            user: nd.user || saved.user
+          }));
+        } else {
+          localStorage.removeItem('sparkroot_session');
+          return;
+        }
+      }
+    } catch(e) {}
+    currentToken = token;
+    currentUser = await loadProfile(saved.user.id, saved.user.email);
+    updateNav();
+  } catch(e) {}
+})();
+
+function updateNav(){
+  const nav = document.getElementById('nav-links');
+  if(currentUser){
+    const col=avaColor(currentUser.name), init=initials(currentUser.name);
+    const role=currentUser.role==='big'?'Big ✔':'Little';
+    nav.innerHTML=`
+      <button class="nav-profile-btn" onclick="openMyProfilePage()">
+        <div class="nav-avatar" style="background:${col}">${init}</div>
+        <div><div class="nav-name">${currentUser.name.split(' ')[0]}</div>
+             <div class="nav-role-badge">${role}</div></div>
+        <span id="notif-badge" class="notif-badge" style="display:none"></span>
+      </button>
+      <button class="nav-btn ghost" onclick="handleLogout()">Log Out</button>`;
+    document.getElementById('hero-ctas').style.display='none';
+    // Load notification badge count after a brief delay
+    setTimeout(updateNotifBadge, 800);
+  }else{
+    nav.innerHTML=`
+      <button class="nav-btn outline" onclick="openModal('login')">Sign In</button>
+      <button class="nav-btn solid"   onclick="openModal('register')">Join Free</button>`;
+    document.getElementById('hero-ctas').style.display='flex';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   AUTH FUNCTIONS
+────────────────────────────────────────────────────────── */
+async function handleLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass =document.getElementById('login-password').value;
+  const err  =document.getElementById('login-error');
+  const btn  =document.getElementById('login-submit');
+  err.classList.remove('visible');
+  if(!email||!pass){err.textContent='Please fill in all fields.';err.classList.add('visible');return;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('Connection timed out. Check your internet and try again.')),12000));
+    const req = fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{
+      method:'POST', headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pass})
+    }).then(async r=>{ const d=await r.json(); if(!r.ok) throw new Error(d.error_description||'Incorrect email or password.'); return d; });
+    const authData = await Promise.race([req, timeout]);
+    currentToken = authData.access_token;
+    localStorage.setItem('sparkroot_session', JSON.stringify({access_token:authData.access_token,refresh_token:authData.refresh_token,user:authData.user}));
+    currentUser = await loadProfile(authData.user.id, authData.user.email);
+    updateNav();
+    closeModal('auth-modal');
+    showToast('Welcome back! 🌸');
+  }catch(e){
+    err.textContent = e.message;
+    err.classList.add('visible');
+  }
+  btn.disabled=false;btn.textContent='Sign In →';
+}
+
+async function handleRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const role=document.getElementById('reg-role').value;
+  const pass=document.getElementById('reg-password').value;
+  const err=document.getElementById('register-error');
+  const btn=document.getElementById('register-submit');
+  err.classList.remove('visible');
+  if(!name||!email||!role||!pass){err.textContent='Please fill in all fields.';err.classList.add('visible');return;}
+  if(pass.length<6){err.textContent='Password must be at least 6 characters.';err.classList.add('visible');return;}
+  btn.disabled=true;btn.textContent='Creating account…';
+  try{
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('Connection timed out. Check your internet and try again.')),12000));
+    const req = fetch(`${SUPABASE_URL}/auth/v1/signup`,{
+      method:'POST', headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pass})
+    }).then(async r=>{ const d=await r.json(); if(!r.ok||!d.access_token) throw new Error(d.error_description||'Registration failed. Please try again.'); return d; });
+    const authData = await Promise.race([req, timeout]);
+    currentToken = authData.access_token;
+    localStorage.setItem('sparkroot_session', JSON.stringify({access_token:authData.access_token,refresh_token:authData.refresh_token,user:authData.user}));
+    await dbPost('profiles', { id:authData.user.id, name, email, role });
+    currentUser = { uid:authData.user.id, name, email, role };
+    // Save extra role-specific fields if provided
+    if(role === 'little'){
+      const school = document.getElementById('reg-school')?.value.trim()||'';
+      const interestEls = document.querySelectorAll('#reg-interests-tags .interest-tag.selected');
+      const interests = Array.from(interestEls).map(t=>t.dataset.interest);
+      const collegesRaw = document.getElementById('reg-colleges')?.value.trim()||'';
+      const colleges_looking = collegesRaw ? collegesRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+      if(school||interests.length||colleges_looking.length){
+        try{ await dbPatch('profiles',authData.user.id,{school,interests,colleges_looking}); currentUser={...currentUser,school,interests,colleges_looking}; }catch(e){}
+      }
+    } else if(role === 'big'){
+      const education = document.getElementById('reg-education')?.value.trim()||'';
+      const company = document.getElementById('reg-company')?.value.trim()||'';
+      const location = document.getElementById('reg-location')?.value.trim()||'';
+      const fieldEls = document.querySelectorAll('#reg-career-fields .check-pill.selected');
+      const career_fields = Array.from(fieldEls).map(p=>p.dataset.field);
+      if(education||company||location||career_fields.length){
+        try{ await dbPatch('profiles',authData.user.id,{education,company,location,career_fields}); currentUser={...currentUser,education,company,location,career_fields}; }catch(e){}
+      }
+    }
+    updateNav();
+    closeModal('auth-modal');
+    showToast(`Welcome to Sparkroot, ${name.split(' ')[0]}! 🌸`);
+  }catch(e){
+    err.textContent = e.message;
+    err.classList.add('visible');
+  }
+  btn.disabled=false;btn.textContent='Create Account →';
+}
+
+function handleLogout(){
+  currentToken = null;
+  currentUser = null;
+  localStorage.removeItem('sparkroot_session');
+  updateNav();
+  showToast('Signed out! See you soon 👋');
+}
+
+/* ──────────────────────────────────────────────────────────
+   MODALS
+────────────────────────────────────────────────────────── */
+function openModal(type){
+  document.getElementById('auth-modal').classList.add('active');
+  switchModalTab(type==='register'||type==='big'?'register':'login');
+  document.getElementById('login-error').classList.remove('visible');
+  document.getElementById('register-error').classList.remove('visible');
+}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+function closeModalOutside(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function switchModalTab(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('modal-login-form').style.display   =tab==='login'?'':'none';
+  document.getElementById('modal-register-form').style.display=tab==='register'?'':'none';
+  document.getElementById('modal-title').textContent=tab==='login'?'Welcome Back':'Join the Network';
+  document.getElementById('modal-sub').textContent  =tab==='login'
+    ?'Sign in to your Sparkroot account':"It's free — choose your role and get started";
+}
+function showSection(name,btn){
+  document.querySelectorAll('.section-content').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ──────────────────────────────────────────────────────────
+   FORUM — REAL-TIME SUPABASE
+────────────────────────────────────────────────────────── */
+let allPosts=[], forumFilter='', activeTag='opportunities';
+
+async function fetchPosts(){
+  try{
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('Connection timed out — tap to retry')),12000));
+    const req = fetch(
+      `${SUPABASE_URL}/rest/v1/posts?select=*&order=created_at.desc&limit=60`,
+      { headers:{ 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    ).then(r=>{ if(!r.ok) throw new Error('Could not load posts ('+r.status+')'); return r.json(); });
+    const data = await Promise.race([req, timeout]);
+    allPosts = Array.isArray(data) ? data : [];
+    renderForumPosts();
+    return true;
+  }catch(e){
+    document.getElementById('forum-posts-list').innerHTML=
+      `<div class="no-results" style="padding:30px">⚠️ <strong>${e.message||'Could not load posts'}</strong><br/><br/><button onclick="fetchPosts()" style="color:var(--green);background:none;border:none;cursor:pointer;font-weight:700;text-decoration:underline;">Tap to retry</button></div>`;
+    return false;
+  }
+}
+
+async function startForumListener(){
+  document.getElementById('forum-posts-list').innerHTML=
+    '<div class="loading-posts"><div class="spinner"></div><br/>Loading posts…</div>';
+  await fetchPosts();
+}
+
+if(CONFIGURED) startForumListener();
+
+function toggleTag(el,tag){
+  document.querySelectorAll('#tag-select .tag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active'); activeTag=tag;
+}
+
+function renderForumPosts(){
+  const list=document.getElementById('forum-posts-list');
+  const term=forumFilter.toLowerCase();
+  const filtered=allPosts.filter(p=>{
+    if(!term) return true;
+    const plain=(p.text||'').replace(/<[^>]+>/g,'').toLowerCase();
+    return plain.includes(term)||(p.author_name||'').toLowerCase().includes(term)
+      ||(p.tag||'').includes(term)||(p.subtitle||'').toLowerCase().includes(term);
+  });
+  if(filtered.length===0){
+    list.innerHTML='<div class="no-results">'+(allPosts.length===0
+      ?'No posts yet — be the first to share something! ✨'
+      :'No posts match that search.'
+    )+'</div>';
+    return;
+  }
+  list.innerHTML=filtered.map(p=>{
+    const init=initials(p.author_name);
+    const col =avaColor(p.author_name);
+    const bClass=`badge-${p.tag||'general'}`;
+    const bLabel=p.tag==='opportunities'?'📌 Opportunity':p.tag==='resources'?'📚 Resource':'💬 General';
+    const rClass=p.author_role==='big'?'role-big':'role-little';
+    const rLabel=p.author_role==='big'?'Big':'Little';
+    const proKey=proKeyByName(p.author_name);
+    const nameHtml=proKey
+      ?`<span class="pro-name-link" onclick="openProfile('${proKey}')">${p.author_name}</span>`
+      :p.author_id
+        ?`<span class="pro-name-link" onclick="viewUserProfile('${p.author_id}')">${p.author_name}</span>`
+        :p.author_name;
+    const liked=(p.liked_by||[]).includes(currentUser?.uid);
+    const helpful=(p.helpful_by||[]).includes(currentUser?.uid);
+    const replyList=(p.replies||[]);
+    const repliesHtml=replyList.length>0?`
+      <div class="replies-list">${replyList.map(r=>`
+        <div class="reply-item">
+          <div class="reply-avatar" style="background:${avaColor(r.authorName)}">${initials(r.authorName)}</div>
+          <div><div class="reply-author-name">${r.authorName}</div>
+               <div class="reply-body">${r.text}</div></div>
+        </div>`).join('')}</div>`:'';
+    return `
+      <div class="post-card" id="post-${p.id}">
+        <div class="post-meta">
+          <div class="avatar" style="background:${col}">${init}</div>
+          <div>
+            <div class="post-author">${nameHtml} <span class="post-role ${rClass}">${rLabel}</span></div>
+            <div style="font-size:.78rem;color:var(--charcoal-soft)">${p.subtitle||''}</div>
+          </div>
+          <div class="post-time">${fmtTime(p.created_at)}</div>
+        </div>
+        <div class="post-body">${p.text||''}</div>
+        <div class="post-footer">
+          <button class="post-action${liked?' liked':''}" onclick="likePost('${p.id}')">
+            ❤️ <span id="lc-${p.id}">${(p.liked_by||[]).length}</span>
+          </button>
+          <button class="post-action${helpful?' helpful-done':''}" onclick="helpfulPost('${p.id}')">
+            👍 <span id="hc-${p.id}">${(p.helpful_by||[]).length}</span> Helpful
+          </button>
+          <button class="post-action" onclick="toggleReplyForm('${p.id}')">
+            💬 Reply${replyList.length>0?' ('+replyList.length+')':''}
+          </button>
+          <span class="post-tag-badge ${bClass}">${bLabel}</span>
+        </div>
+        ${repliesHtml}
+        <div id="rf-${p.id}"></div>
+      </div>`;
+  }).join('');
+}
+
+function filterForum(val){
+  forumFilter=val;
+  document.getElementById('forum-search-clear').classList.toggle('visible',val.length>0);
+  renderForumPosts();
+}
+function clearForumSearch(){
+  document.getElementById('forum-search').value='';
+  filterForum('');
+}
+function searchTopic(term){
+  document.getElementById('forum-search').value=term;
+  filterForum(term);
+  document.getElementById('forum-posts-list').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function likePost(id){
+  if(!currentUser){openModal('login');showToast('Sign in to like posts!');return;}
+  const idx=allPosts.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const p=allPosts[idx];
+  const liked=(p.liked_by||[]).includes(currentUser.uid);
+  const newLikedBy=liked
+    ?(p.liked_by||[]).filter(u=>u!==currentUser.uid)
+    :[...(p.liked_by||[]),currentUser.uid];
+  allPosts[idx]={...p,liked_by:newLikedBy};
+  renderForumPosts();
+  try{ await dbPatch('posts',id,{liked_by:newLikedBy}); }
+  catch(e){ showToast('Could not save like.'); allPosts[idx]=p; renderForumPosts(); }
+}
+
+async function helpfulPost(id){
+  if(!currentUser){openModal('login');showToast('Sign in first!');return;}
+  const idx=allPosts.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const p=allPosts[idx];
+  if((p.helpful_by||[]).includes(currentUser.uid)) return;
+  const newHelpfulBy=[...(p.helpful_by||[]),currentUser.uid];
+  allPosts[idx]={...p,helpful_by:newHelpfulBy};
+  renderForumPosts();
+  try{ await dbPatch('posts',id,{helpful_by:newHelpfulBy}); showToast('Marked as helpful! 👍'); }
+  catch(e){ showToast('Could not mark helpful.'); allPosts[idx]=p; renderForumPosts(); }
+}
+
+function toggleReplyForm(id){
+  if(!currentUser){openModal('login');showToast('Sign in to reply!');return;}
+  const c=document.getElementById('rf-'+id);
+  if(c.innerHTML!==''){c.innerHTML='';return;}
+  c.innerHTML=`
+    <div class="reply-form">
+      <textarea id="rta-${id}" rows="2" placeholder="Write a reply…"></textarea>
+      <div class="reply-actions">
+        <button class="reply-cancel" onclick="document.getElementById('rf-${id}').innerHTML=''">Cancel</button>
+        <button class="reply-submit" onclick="submitReply('${id}')">Reply →</button>
+      </div>
+    </div>`;
+  document.getElementById('rta-'+id).focus();
+}
+
+async function submitReply(id){
+  const ta=document.getElementById('rta-'+id);
+  const text=ta?ta.value.trim():'';
+  if(!text){showToast('Please write something first.');return;}
+  const p=allPosts.find(x=>x.id===id);
+  if(!p) return;
+  const newReplies=[...(p.replies||[]),{
+    authorId:currentUser.uid,
+    authorName:currentUser.name,
+    text,
+    createdAt:new Date().toISOString()
+  }];
+  try{ await dbPatch('posts', id, { replies: newReplies }); }catch(e){ showToast('Could not post reply.'); return; }
+  // Update local state immediately so reply appears right away
+  const idx=allPosts.findIndex(x=>x.id===id);
+  if(idx>=0) allPosts[idx]={...allPosts[idx], replies:newReplies};
+  renderForumPosts();
+  showToast('Reply posted! 💬');
+}
+
+async function submitForumPost(){
+  if(!currentUser||!currentToken){ openModal('login'); showToast('Please sign in first!'); return; }
+  const ta=document.getElementById('forum-textarea');
+  const text=ta.value.trim();
+  if(!text){showToast('Please write something first.');return;}
+  const savedText=text;
+  clearForumSearch();
+  ta.value='';
+  showToast('Posting…');
+  try{
+    await dbPost('posts',{
+      author_id:currentUser.uid,
+      author_name:currentUser.name,
+      author_role:currentUser.role||'little',
+      subtitle:currentUser.role==='big'?'Verified Professional · Sparkroot':'Community Member',
+      tag:activeTag, text:savedText, liked_by:[], helpful_by:[], replies:[]
+    });
+  }catch(e){ showToast('Error: '+e.message); ta.value=savedText; return; }
+  // Manually refresh so post appears immediately
+  const freshRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/posts?select=*&order=created_at.desc&limit=60`,
+    { headers:{ 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+  );
+  const fresh = freshRes.ok ? await freshRes.json() : [];
+  allPosts = Array.isArray(fresh) ? fresh : [];
+  renderForumPosts();
+  showToast('Your post is live! 🎉');
+  document.getElementById('forum-posts-list').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ──────────────────────────────────────────────────────────
+   PROFESSIONAL PROFILES
+────────────────────────────────────────────────────────── */
+const professionals={
+  jordan:{name:'Jordan M.',fullName:'Jordan Mitchell',title:'Partner, Sullivan Law Group',field:'Law & Legal',color:'#3b82c4',
+    bio:"Jordan has spent 15 years practicing corporate and M&A law. She's passionate about mentoring the next generation of women in legal careers and hosts regular free Q&A sessions for aspiring law students.",
+    expertise:['Corporate Law','M&A','Contract Negotiation'],openTo:['Coffee chats','Application reviews','Mock interviews'],posts:24,answers:18},
+  rena:{name:'Dr. Rena P.',fullName:'Dr. Rena Patel',title:'Oncologist, Memorial Hospital',field:'Medicine & Health',color:'#2a9d8f',
+    bio:"Dr. Rena Patel is a board-certified oncologist with a passion for mentoring pre-med students. She regularly shares resources on MCAT prep, medical school applications, and navigating medicine's emotional demands.",
+    expertise:['Oncology','MCAT Prep','Medical School Applications'],openTo:['Shadowing info','Application reviews','Career Q&A'],posts:31,answers:42},
+  tanya:{name:'Tanya W.',fullName:'Tanya Williams',title:'VP of Engineering, TechVenture Co.',field:'Technology',color:'#6a4c93',
+    bio:"Tanya leads a 200-person engineering org and co-founded TechVenture's Women in Tech initiative. She hosts free Thursday office hours for girls interested in software engineering and product management.",
+    expertise:['Software Engineering','Product Management','Engineering Leadership'],openTo:['Weekly office hours','Resume reviews','Technical mock interviews'],posts:45,answers:67},
+  priya:{name:'Priya S.',fullName:'Priya Sharma',title:'Associate, Goldman Sachs',field:'Finance & Banking',color:'#c77b2a',
+    bio:"Priya navigated the competitive investment banking recruiting process and now coaches students on breaking into finance, networking, and surviving analyst years.",
+    expertise:['Investment Banking','Financial Modeling','IB Recruiting'],openTo:['Networking guidance','Resume & cover letter reviews'],posts:19,answers:28},
+  morgan:{name:'Morgan K.',fullName:'Morgan Kim',title:'Creative Director, Studio North',field:'Arts & Media',color:'#b5446e',
+    bio:"Morgan works with Fortune 500 brands and independent artists. She believes creative careers are viable and sustainable — you just need the right strategy.",
+    expertise:['Brand Identity','Portfolio Strategy','Creative Business'],openTo:['Portfolio reviews','Creative business advice'],posts:14,answers:22},
+};
+
+function proKeyByName(name){
+  return Object.entries(professionals).find(([,p])=>p.name===name)?.[0]||null;
+}
+
+function openProfile(key){
+  const p=professionals[key];if(!p) return;
+  const init=initials(p.name);
+  document.getElementById('profile-modal-content').innerHTML=`
+    <div class="profile-header">
+      <div class="profile-big-avatar" style="background:${p.color}">${init}</div>
+      <div>
+        <div class="profile-name">${p.fullName}</div>
+        <div class="profile-title">${p.title}</div>
+        <div class="profile-field">💼 ${p.field}</div>
+      </div>
+    </div>
+    <div class="profile-bio">${p.bio}</div>
+    <div class="profile-section-title">Expertise</div>
+    <div class="profile-tags">${p.expertise.map(e=>`<span class="profile-tag">${e}</span>`).join('')}</div>
+    <div class="profile-section-title">Open To</div>
+    ${p.openTo.map(o=>`<div class="profile-open-item">✅ ${o}</div>`).join('')}
+    <div style="display:flex;gap:24px;margin-top:18px;padding-top:14px;border-top:1.5px solid var(--cream-dark);">
+      <div style="text-align:center;"><div style="font-size:1.3rem;font-weight:800;color:var(--green)">${p.posts}</div><div style="font-size:.78rem;color:var(--charcoal-soft)">Posts</div></div>
+      <div style="text-align:center;"><div style="font-size:1.3rem;font-weight:800;color:var(--green)">${p.answers}</div><div style="font-size:.78rem;color:var(--charcoal-soft)">Answers</div></div>
+    </div>
+    <button class="connect-btn" onclick="${currentUser?`showToast('Connection request sent! 🌸');this.textContent='✉️ Request Sent!';this.disabled=true`:`openModal('login')`}">
+      ${currentUser?'✉️ Request Connection':'Sign in to Connect'}
+    </button>`;
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+async function openUserProfile(){
+  if(!currentUser) return;
+  const col=avaColor(currentUser.name), init=initials(currentUser.name);
+  // load user's posts from Supabase
+  let myPosts=[];
+  try{
+    const rows = await dbGet(`posts?author_id=eq.${currentUser.uid}&select=*&order=created_at.desc&limit=10`);
+    myPosts = Array.isArray(rows) ? rows : [];
+  }catch(e){}
+  document.getElementById('profile-modal-content').innerHTML=`
+    <div class="profile-header">
+      <div class="profile-big-avatar" style="background:${col}">${init}</div>
+      <div>
+        <div class="profile-name">${currentUser.name}</div>
+        <div class="profile-title">${currentUser.email}</div>
+        <div class="profile-field">${currentUser.role==='big'?'💼 Big — Professional':'🌸 Little — Student'}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:var(--cream);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:800;color:var(--green)">${myPosts.length}</div>
+        <div style="font-size:.8rem;color:var(--charcoal-soft)">Posts Made</div>
+      </div>
+      <div style="background:var(--cream);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:1.2rem;font-weight:800;color:var(--forest)">${currentUser.role==='big'?'Mentor':'Member'}</div>
+        <div style="font-size:.8rem;color:var(--charcoal-soft)">Role</div>
+      </div>
+    </div>
+    <div class="profile-section-title">Your Posts</div>
+    ${myPosts.length===0
+      ?'<div style="color:var(--charcoal-soft);font-size:.9rem;font-style:italic;padding:10px 0;">You haven\'t posted yet. Share something on the Community Board!</div>'
+      :myPosts.map(p=>`
+        <div class="my-post-item">
+          <div class="meta">${fmtTime(p.created_at)} · ${p.tag}</div>
+          <div>${(p.text||'').replace(/<[^>]+>/g,'').slice(0,120)}…</div>
+        </div>`).join('')}`;
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+/* ──────────────────────────────────────────────────────────
+   CAREER FIELDS + FIRESTORE Q&A
+────────────────────────────────────────────────────────── */
+const careerData=[
+  {key:'law',emoji:'⚖️',title:'Law & Legal',count:'148 questions · 63 verified',
+   qa:[{q:'How competitive is it to get into a top law school?',answers:[{text:'GPA and LSAT are the main factors. A 3.7+ GPA and 170+ LSAT makes you competitive at T14. Softs matter when numbers are borderline.',name:'Jordan M.',nameKey:'jordan',role:'Partner @ Sullivan Law Group',verified:true}]},
+       {q:'What does a typical first-year associate do?',answers:[{text:'Lots of document review, legal research, and drafting memos. You rarely see a courtroom as a first-year, but you learn fast.',name:'Jordan M.',nameKey:'jordan',role:'Partner @ Sullivan Law Group',verified:true}]}]},
+  {key:'medicine',emoji:'🏥',title:'Medicine & Health',count:'214 questions · 97 verified',
+   qa:[{q:'How long does it take to become a doctor?',answers:[{text:'4 yrs undergrad + 4 yrs med school + 3–7 yrs residency + optional fellowship = 11–18 years total.',name:'Dr. Rena P.',nameKey:'rena',role:'Oncologist · Memorial Hospital',verified:true}]}]},
+  {key:'tech',emoji:'💻',title:'Technology',count:'302 questions · 155 verified',
+   qa:[{q:'Do I need a CS degree to get a tech job?',answers:[{text:'Not necessarily! For big tech, a CS degree or strong portfolio matters. Focus on data structures, algorithms, and system design.',name:'Tanya W.',nameKey:'tanya',role:'VP Engineering · TechVenture Co.',verified:true}]}]},
+  {key:'business',emoji:'📊',title:'Business & Management',count:'189 questions · 84 verified',
+   qa:[{q:'Should I get an MBA right out of undergrad?',answers:[{text:'Most top MBA programs prefer 3–5 years of work experience. Work first, then go back. Deferred programs are the exception.',name:'Sarah K.',nameKey:null,role:'Director of Strategy',verified:true}]}]},
+  {key:'science',emoji:'🔬',title:'Science & Research',count:'121 questions · 58 verified',
+   qa:[{q:'Is academia or industry better for scientists?',answers:[{text:'Academia offers intellectual freedom; industry offers better pay. Biotech and pharma pay very well for PhDs.',name:'Dr. Lisa N.',nameKey:null,role:'Sr. Research Scientist · Genentech',verified:true}]}]},
+  {key:'finance',emoji:'💰',title:'Finance & Banking',count:'167 questions · 72 verified',
+   qa:[{q:'How do I break into investment banking?',answers:[{text:'Target school, GPA 3.5+, networking aggressively. Summer analyst recruiting starts in September of junior year.',name:'Priya S.',nameKey:'priya',role:'Associate · Goldman Sachs',verified:true}]}]},
+  {key:'education',emoji:'📚',title:'Education',count:'93 questions · 44 verified',
+   qa:[{q:"What's the difference between an M.Ed. and MAT?",answers:[{text:'M.Ed. is broader (curriculum, admin). MAT focuses on classroom teaching. For K-12 teaching, MAT is usually better.',name:'Dr. Michelle R.',nameKey:null,role:'Assistant Principal',verified:true}]}]},
+  {key:'arts',emoji:'🎨',title:'Arts & Media',count:'138 questions · 61 verified',
+   qa:[{q:'Can you actually make a living as a creative?',answers:[{text:'Absolutely — but diversify: client work + licensing + teaching. Build your audience early and treat it like a business.',name:'Morgan K.',nameKey:'morgan',role:'Creative Director · Studio North',verified:true}]}]},
+  {key:'engineering',emoji:'⚙️',title:'Engineering',count:'176 questions · 88 verified',
+   qa:[{q:'What engineering field has the best opportunities?',answers:[{text:'Software and electrical have the widest demand. Biomedical is growing fast. Follow genuine interest — passion matters.',name:'Dr. Elena V.',nameKey:null,role:'Structural Engineer · AECOM',verified:true}]}]},
+  {key:'nonprofit',emoji:'🌍',title:'Nonprofit & Social Work',count:'87 questions · 40 verified',
+   qa:[{q:'Is a social work degree required for nonprofits?',answers:[{text:'For direct-service roles, yes. For program management or fundraising, a variety of degrees work. Experience matters most.',name:'Aisha T.',nameKey:null,role:'Program Director · BrightFutures',verified:true}]}]},
+  {key:'entrepreneurship',emoji:'🚀',title:'Entrepreneurship',count:'210 questions · 95 verified',
+   qa:[{q:'When should I start my business?',answers:[{text:"College is ideal — access to grants, resources, and a safety net. Validate your idea before you need revenue.",name:'Simone B.',nameKey:null,role:'Founder · Sparrow Health',verified:true}]}]},
+  {key:'government',emoji:'🏛️',title:'Government & Policy',count:'74 questions · 31 verified',
+   qa:[{q:'What are the best pathways into federal government?',answers:[{text:'Presidential Management Fellowship (PMF) is the gold standard for grad students. Pathways internships are great for undergrads.',name:'Dr. Carmen V.',nameKey:null,role:'Policy Advisor · Dept. of Education',verified:true}]}]},
+];
+
+let activeCareerKey=null;
+
+function renderCareerGrid(list){
+  document.getElementById('career-grid').innerHTML=list.length===0
+    ?'<div class="no-results" style="grid-column:1/-1">No fields match that search.</div>'
+    :list.map(c=>`
+      <div class="career-card" onclick="showCareer('${c.key}')">
+        <span class="career-emoji">${c.emoji}</span>
+        <div class="career-title">${c.title}</div>
+        <div class="career-count">${c.count}</div>
+      </div>`).join('');
+}
+function filterCareers(val){
+  renderCareerGrid(careerData.filter(c=>!val||c.title.toLowerCase().includes(val.toLowerCase())));
+}
+
+async function showCareer(key){
+  activeCareerKey=key;
+  const data=careerData.find(c=>c.key===key);
+  document.getElementById('career-grid-wrapper').style.display='none';
+  document.getElementById('detail-icon').textContent =data.emoji;
+  document.getElementById('detail-title').textContent=data.title;
+  document.getElementById('detail-sub').textContent  =data.count+' · Ask your question below';
+  document.getElementById('career-question-input').value='';
+  document.getElementById('career-detail').classList.add('active');
+  await renderCareerQA(key);
+}
+function backToGrid(){
+  document.getElementById('career-grid-wrapper').style.display='';
+  document.getElementById('career-detail').classList.remove('active');
+  activeCareerKey=null;
+}
+
+async function renderCareerQA(key){
+  const data=careerData.find(c=>c.key===key);
+  // Load user questions from Supabase
+  let userQs=[];
+  if(CONFIGURED){
+    try{
+      const rows = await dbGet(`career_questions?career_key=eq.${key}&select=*&order=created_at.desc`);
+      userQs = Array.isArray(rows) ? rows : [];
+    }catch(e){}
+  }
+  const allQA=[
+    ...userQs.map(q=>({
+      q:q.question, qId:q.id, isUser:true, hasAnswer:!!q.answer,
+      answers:[{text:q.answer||'Your question has been posted! Professionals will answer soon.',name:q.asked_by,nameKey:null,role:'Community Member',verified:false}]
+    })),
+    ...data.qa
+  ];
+  document.getElementById('career-qa-list').innerHTML=allQA.map((item,idx)=>{
+    const answerSection = item.isUser && !item.hasAnswer && currentUser?.role==='big' ? `
+      <div id="af-${item.qId}" style="display:none;margin-top:10px;">
+        <textarea id="at-${item.qId}" rows="2" placeholder="Share your expert answer…"
+          style="width:100%;padding:10px;border:1.5px solid var(--cream-dark);border-radius:6px;font-family:inherit;font-size:.9rem;margin-bottom:8px;resize:none;background:#fff;"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="reply-cancel" onclick="document.getElementById('af-${item.qId}').style.display='none'">Cancel</button>
+          <button class="reply-submit" onclick="submitCareerAnswer('${item.qId}')">Submit Answer →</button>
+        </div>
+      </div>
+      <button id="ab-${item.qId}" class="post-action" style="margin-top:6px;color:var(--green);"
+        onclick="document.getElementById('af-${item.qId}').style.display='block';this.style.display='none'">✍️ Answer as Big</button>
+    ` : '';
+    return `
+    <div class="qa-card">
+      <div class="qa-question">Q: ${item.q}</div>
+      <div class="qa-answers">
+        ${item.answers.map(a=>{
+          const nameHtml=a.nameKey?`<span class="pro-name-link" onclick="openProfile('${a.nameKey}')">${a.name}</span>`:a.name;
+          return `<div class="qa-answer">
+            <strong>${nameHtml}</strong> ${a.verified?'<span class="verified-badge">✔ Verified</span>':''}
+            <br/><span style="font-size:.78rem;color:var(--green)">${a.role}</span>
+            <br/><span style="display:block;margin-top:4px;">${a.text}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="post-action" onclick="this.textContent='👍 Helpful!';this.classList.add('helpful-done');this.style.pointerEvents='none'">👍 Helpful</button>
+      </div>
+      ${answerSection}
+    </div>`;
+  }).join('');
+}
+
+async function submitCareerAnswer(qId){
+  if(!currentUser||currentUser.role!=='big'){showToast('Only Bigs can answer questions.');return;}
+  const ta=document.getElementById('at-'+qId);
+  const text=ta?ta.value.trim():'';
+  if(!text){showToast('Please write an answer first.');return;}
+  // Get asker's id before patching
+  let askerId=null;
+  try{
+    const rows=await dbGet(`career_questions?id=eq.${qId}&select=asked_by_id,question`);
+    if(rows&&rows[0]){ askerId=rows[0].asked_by_id; }
+  }catch(e){}
+  try{ await dbPatch('career_questions',qId,{answer:text}); }
+  catch(e){ showToast('Error saving answer. You may need to run the update SQL — see setup guide.'); return; }
+  await renderCareerQA(activeCareerKey);
+  showToast('Answer posted! ✔️ Thank you for mentoring 🌸');
+  // Notify the question asker
+  if(askerId){
+    const career=careerData.find(c=>c.key===activeCareerKey);
+    try{ await createNotification(askerId,'answer',`✅ ${currentUser.name} answered your question in ${career?.title||'Career Fields'}! Check it out.`); }catch(e){}
+  }
+}
+
+async function submitCareerQuestion(){
+  if(!currentUser){openModal('login');showToast('Sign in to ask a question!');return;}
+  const input=document.getElementById('career-question-input');
+  const q=input.value.trim();
+  if(!q){showToast('Please type a question first.');return;}
+  try{ await dbPost('career_questions',{career_key:activeCareerKey,question:q,asked_by:currentUser.name,asked_by_id:currentUser.uid,answer:null}); }
+  catch(e){ showToast('Error posting question.'); return; }
+  input.value='';
+  await renderCareerQA(activeCareerKey);
+  showToast('Question posted! 🎉');
+  // Notify Bigs whose career_fields includes this key
+  if(currentUser.role !== 'big'){
+    try{
+      const career=careerData.find(c=>c.key===activeCareerKey);
+      const bigs=await dbGet(`profiles?role=eq.big&select=id,career_fields`);
+      const relevant=(Array.isArray(bigs)?bigs:[]).filter(b=>(b.career_fields||[]).includes(activeCareerKey));
+      for(const big of relevant.slice(0,20)){
+        await createNotification(big.id,'question',
+          `❓ New question in ${career?.title||activeCareerKey}: "${q.slice(0,60)}${q.length>60?'…':''}"`);
+      }
+    }catch(e){}
+  }
+}
+
+renderCareerGrid(careerData);
+
+/* ══════════════════════════════════════════════════════════════
+   PROFILE PAGE + MESSAGING SYSTEM
+══════════════════════════════════════════════════════════════ */
+const INTEREST_OPTIONS = ['STEM','Arts','Business','Law','Medicine','Education','Engineering','Finance','Tech','Nonprofit','Entrepreneurship','Government'];
+const WILLING_TO_OPTIONS = ['Office Hours','Resume Review','Mock Interviews','Coffee Chats','Shadowing Opportunities','Career Q&A'];
+
+// ── Registration extra fields (toggled by role select) ──
+function toggleRegExtraFields(){
+  const role=document.getElementById('reg-role').value;
+  const littleDiv=document.getElementById('reg-little-extra');
+  const bigDiv=document.getElementById('reg-big-extra');
+  littleDiv.style.display='none'; bigDiv.style.display='none';
+  if(role==='little'){
+    littleDiv.style.display='block';
+    if(!littleDiv.dataset.loaded){
+      littleDiv.dataset.loaded='1';
+      littleDiv.innerHTML=`
+        <div class="reg-section-label">✨ Tell us about yourself (optional)</div>
+        <div class="form-group">
+          <label>Your School</label>
+          <input type="text" id="reg-school" placeholder="Your high school or college"/>
+        </div>
+        <div class="form-group">
+          <label>Your Interests</label>
+          <div id="reg-interests-tags" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">
+            ${INTEREST_OPTIONS.map(i=>`<span class="interest-tag" onclick="this.classList.toggle('selected')" data-interest="${i}">${i}</span>`).join('')}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Colleges You're Considering (comma-separated)</label>
+          <input type="text" id="reg-colleges" placeholder="e.g. Michigan, Spelman, Northwestern"/>
+        </div>`;
+    }
+  } else if(role==='big'){
+    bigDiv.style.display='block';
+    if(!bigDiv.dataset.loaded){
+      bigDiv.dataset.loaded='1';
+      bigDiv.innerHTML=`
+        <div class="reg-section-label">💼 Tell us about your career (optional)</div>
+        <div class="form-group">
+          <label>Career Fields</label>
+          <div id="reg-career-fields" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">
+            ${careerData.map(c=>`<span class="check-pill" onclick="this.classList.toggle('selected')" data-field="${c.key}">${c.emoji} ${c.title}</span>`).join('')}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Education</label>
+          <input type="text" id="reg-education" placeholder="e.g. B.S. CS, MIT · J.D. Harvard"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Company</label>
+            <input type="text" id="reg-company" placeholder="Your employer"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Location</label>
+            <input type="text" id="reg-location" placeholder="City, State"/>
+          </div>
+        </div>`;
+    }
+  }
+}
+
+// ── Open / close full-screen profile page ──
+async function openMyProfilePage(){
+  if(!currentUser){openModal('login');return;}
+  const col=avaColor(currentUser.name), init=initials(currentUser.name);
+  document.getElementById('ppg-avatar').style.background=col;
+  document.getElementById('ppg-avatar').textContent=init;
+  document.getElementById('ppg-name').textContent=currentUser.name;
+  document.getElementById('ppg-role-label').textContent=currentUser.role==='big'?'💼 Big — Professional Mentor':'🌸 Little — Student Member';
+  document.getElementById('ppg-email-label').textContent=currentUser.email||'';
+  document.getElementById('profile-page').classList.add('active');
+  document.body.style.overflow='hidden';
+  await updateNotifBadgePPG();
+  switchPPGTab('profile');
+}
+function closeProfilePage(){
+  document.getElementById('profile-page').classList.remove('active');
+  document.body.style.overflow='';
+}
+function switchPPGTab(tab){
+  document.querySelectorAll('.ppg-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ppg-tab-content').forEach(c=>c.classList.remove('active'));
+  const tabEl=document.querySelector(`.ppg-tab[data-tab="${tab}"]`);
+  if(tabEl) tabEl.classList.add('active');
+  const contentEl=document.getElementById('ppg-content-'+tab);
+  if(contentEl) contentEl.classList.add('active');
+  if(tab==='profile') renderMyProfileTab();
+  if(tab==='messages') renderMessagesTab();
+}
+
+// ── Render profile tab content ──
+async function renderMyProfileTab(){
+  const container=document.getElementById('ppg-content-profile');
+  container.innerHTML='<div class="ppg-section"><div class="notif-empty"><div class="spinner"></div><br/>Loading…</div></div>';
+  let profile={...currentUser};
+  try{
+    const rows=await dbGet(`profiles?id=eq.${currentUser.uid}&select=*&limit=1`);
+    if(rows&&rows[0]) profile={...profile,...rows[0]};
+    currentUser={...currentUser,...profile};
+  }catch(e){}
+  if(currentUser.role==='little') renderLittleProfileTab(container,profile);
+  else renderBigProfileTab(container,profile);
+}
+
+function renderLittleProfileTab(container,profile){
+  const selInterests=profile.interests||[];
+  const selColleges=(profile.colleges_looking||[]).join(', ');
+  container.innerHTML=`
+    <div class="ppg-section">
+      <h3>✏️ About You</h3>
+      <div class="ppg-field">
+        <label>Bio</label>
+        <textarea id="ppg-bio" rows="3" placeholder="Tell Bigs about yourself, your goals, and what you're passionate about…">${profile.bio||''}</textarea>
+      </div>
+      <div class="ppg-field">
+        <label>Resume / Portfolio Link</label>
+        <input type="url" id="ppg-resume" placeholder="https://your-resume.com" value="${profile.resume_url||''}"/>
+      </div>
+      <div class="ppg-field">
+        <label>School</label>
+        <input type="text" id="ppg-school-edit" placeholder="Your high school or college" value="${profile.school||''}"/>
+      </div>
+      <button class="ppg-save-btn" onclick="saveLittleBasicInfo()">Save Changes</button>
+    </div>
+    <div class="ppg-section">
+      <h3>💡 Your Interests</h3>
+      <div id="ppg-interests-wrap" style="margin-bottom:14px">
+        ${INTEREST_OPTIONS.map(i=>`<span class="interest-tag${selInterests.includes(i)?' selected':''}" onclick="this.classList.toggle('selected')" data-interest="${i}">${i}</span>`).join('')}
+      </div>
+      <button class="ppg-save-btn" onclick="saveLittleInterests()">Save Interests</button>
+    </div>
+    <div class="ppg-section">
+      <h3>🎓 Colleges You're Considering</h3>
+      <div class="ppg-field">
+        <label>Enter college names, separated by commas</label>
+        <input type="text" id="ppg-colleges-edit" placeholder="e.g. Michigan, Spelman, Northwestern" value="${selColleges}"/>
+      </div>
+      <button class="ppg-save-btn" onclick="saveLittleColleges()">Save Colleges</button>
+    </div>`;
+}
+
+function renderBigProfileTab(container,profile){
+  const selWilling=profile.willing_to||[];
+  const selFields=profile.career_fields||[];
+  container.innerHTML=`
+    <div class="ppg-section">
+      <h3>✏️ About You</h3>
+      <div class="ppg-field">
+        <label>Bio</label>
+        <textarea id="ppg-bio" rows="3" placeholder="Share your story, expertise, and what drives you to mentor…">${profile.bio||''}</textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="ppg-field">
+          <label>Company / Organization</label>
+          <input type="text" id="ppg-company-edit" placeholder="Your employer" value="${profile.company||''}"/>
+        </div>
+        <div class="ppg-field">
+          <label>Location</label>
+          <input type="text" id="ppg-location-edit" placeholder="City, State" value="${profile.location||''}"/>
+        </div>
+      </div>
+      <div class="ppg-field">
+        <label>Education</label>
+        <input type="text" id="ppg-education-edit" placeholder="e.g. B.S. CS, MIT · J.D. Harvard Law" value="${profile.education||''}"/>
+      </div>
+      <button class="ppg-save-btn" onclick="saveBigBasicInfo()">Save Changes</button>
+    </div>
+    <div class="ppg-section">
+      <h3>💼 Your Career Fields</h3>
+      <p style="font-size:.84rem;color:var(--charcoal-soft);margin-bottom:12px">Littles searching these fields will find and connect with you.</p>
+      <div id="ppg-fields-wrap" style="margin-bottom:14px">
+        ${careerData.map(c=>`<span class="check-pill${selFields.includes(c.key)?' selected':''}" onclick="this.classList.toggle('selected')" data-field="${c.key}">${c.emoji} ${c.title}</span>`).join('')}
+      </div>
+      <button class="ppg-save-btn" onclick="saveBigFields()">Save Fields</button>
+    </div>
+    <div class="ppg-section">
+      <h3>🤝 I'm Open To</h3>
+      <div id="ppg-willing-wrap" style="margin-bottom:14px">
+        ${WILLING_TO_OPTIONS.map(opt=>`<span class="check-pill${selWilling.includes(opt)?' selected':''}" onclick="this.classList.toggle('selected')" data-willing="${opt}">${opt}</span>`).join('')}
+      </div>
+      <button class="ppg-save-btn" onclick="saveBigWillingTo()">Save Preferences</button>
+    </div>
+    <div class="ppg-section">
+      <h3>📋 Your Posts</h3>
+      <div id="ppg-my-posts"><div style="color:var(--charcoal-soft);font-size:.9rem">Loading…</div></div>
+    </div>`;
+  loadBigPosts();
+}
+
+async function loadBigPosts(){
+  try{
+    const rows=await dbGet(`posts?author_id=eq.${currentUser.uid}&select=*&order=created_at.desc&limit=10`);
+    const posts=Array.isArray(rows)?rows:[];
+    const el=document.getElementById('ppg-my-posts');
+    if(!el) return;
+    el.innerHTML=posts.length===0
+      ?'<div style="color:var(--charcoal-soft);font-size:.88rem;font-style:italic">No posts yet — share opportunities on the Community Board!</div>'
+      :posts.map(p=>`
+          <div class="my-post-item">
+            <div class="meta">${fmtTime(p.created_at)} · ${p.tag}</div>
+            <div>${(p.text||'').slice(0,140)}${(p.text||'').length>140?'…':''}</div>
+          </div>`).join('');
+  }catch(e){}
+}
+
+// ── Profile field save helpers ──
+async function saveLittleBasicInfo(){
+  if(!currentUser) return;
+  const bio=document.getElementById('ppg-bio')?.value.trim()||'';
+  const resume_url=document.getElementById('ppg-resume')?.value.trim()||'';
+  const school=document.getElementById('ppg-school-edit')?.value.trim()||'';
+  try{await dbPatch('profiles',currentUser.uid,{bio,resume_url,school});currentUser={...currentUser,bio,resume_url,school};showToast('Saved! ✨');}
+  catch(e){showToast('Error saving profile.');}
+}
+async function saveLittleInterests(){
+  const interests=Array.from(document.querySelectorAll('#ppg-interests-wrap .interest-tag.selected')).map(t=>t.dataset.interest);
+  try{await dbPatch('profiles',currentUser.uid,{interests});currentUser={...currentUser,interests};showToast('Interests saved! 🌸');}
+  catch(e){showToast('Error saving interests.');}
+}
+async function saveLittleColleges(){
+  const val=document.getElementById('ppg-colleges-edit')?.value.trim()||'';
+  const colleges_looking=val?val.split(',').map(s=>s.trim()).filter(Boolean):[];
+  try{await dbPatch('profiles',currentUser.uid,{colleges_looking});currentUser={...currentUser,colleges_looking};showToast('Colleges saved! 🎓');}
+  catch(e){showToast('Error saving colleges.');}
+}
+async function saveBigBasicInfo(){
+  if(!currentUser) return;
+  const bio=document.getElementById('ppg-bio')?.value.trim()||'';
+  const company=document.getElementById('ppg-company-edit')?.value.trim()||'';
+  const location=document.getElementById('ppg-location-edit')?.value.trim()||'';
+  const education=document.getElementById('ppg-education-edit')?.value.trim()||'';
+  try{await dbPatch('profiles',currentUser.uid,{bio,company,location,education});currentUser={...currentUser,bio,company,location,education};showToast('Saved! ✨');}
+  catch(e){showToast('Error saving profile.');}
+}
+async function saveBigFields(){
+  const career_fields=Array.from(document.querySelectorAll('#ppg-fields-wrap .check-pill.selected')).map(p=>p.dataset.field);
+  try{await dbPatch('profiles',currentUser.uid,{career_fields});currentUser={...currentUser,career_fields};showToast('Career fields saved! 💼');}
+  catch(e){showToast('Error saving fields.');}
+}
+async function saveBigWillingTo(){
+  const willing_to=Array.from(document.querySelectorAll('#ppg-willing-wrap .check-pill.selected')).map(p=>p.dataset.willing);
+  try{await dbPatch('profiles',currentUser.uid,{willing_to});currentUser={...currentUser,willing_to};showToast('Preferences saved! 🤝');}
+  catch(e){showToast('Error saving preferences.');}
+}
+
+// ── Notifications ──
+async function createNotification(userId,type,message){
+  if(!CONFIGURED||!userId) return;
+  try{await dbPost('notifications',{user_id:userId,type,message,read:false});}catch(e){}
+}
+async function markNotifRead(id){
+  try{await dbPatch('notifications',id,{read:true});}catch(e){}
+}
+async function loadNotifications(){
+  if(!currentUser||!CONFIGURED) return [];
+  try{
+    const rows=await dbGet(`notifications?user_id=eq.${currentUser.uid}&select=*&order=created_at.desc&limit=40`);
+    return Array.isArray(rows)?rows:[];
+  }catch(e){return [];}
+}
+async function updateNotifBadge(){
+  if(!currentUser||!CONFIGURED) return;
+  try{
+    const rows=await dbGet(`notifications?user_id=eq.${currentUser.uid}&read=eq.false&select=id`);
+    const count=Array.isArray(rows)?rows.length:0;
+    const badge=document.getElementById('notif-badge');
+    if(badge){badge.textContent=count||'';badge.style.display=count>0?'inline':'none';}
+  }catch(e){}
+}
+async function updateNotifBadgePPG(){
+  if(!currentUser||!CONFIGURED) return;
+  try{
+    const rows=await dbGet(`notifications?user_id=eq.${currentUser.uid}&read=eq.false&select=id`);
+    const count=Array.isArray(rows)?rows.length:0;
+    const badge=document.getElementById('notif-badge-ppg');
+    if(badge){badge.textContent=count||'';badge.style.display=count>0?'inline':'none';}
+  }catch(e){}
+}
+
+async function renderMessagesTab(){
+  const container=document.getElementById('ppg-content-messages');
+  container.innerHTML='<div class="ppg-section"><div class="notif-empty"><div class="spinner"></div><br/>Loading…</div></div>';
+  const notifs=await loadNotifications();
+  // For Littles: also load recent opportunity posts
+  let oppPosts=[];
+  if(currentUser.role==='little'&&CONFIGURED){
+    try{
+      const rows=await dbGet(`posts?tag=eq.opportunities&select=*&order=created_at.desc&limit=5`);
+      oppPosts=Array.isArray(rows)?rows:[];
+    }catch(e){}
+  }
+  let html=`<div class="ppg-section"><h3>🔔 Notifications</h3>`;
+  if(notifs.length===0){
+    html+=`<div class="notif-empty">Nothing here yet! When Bigs answer your questions or Littles send you connection requests, notifications will appear here.</div>`;
+  } else {
+    html+=notifs.map(n=>`
+      <div class="notif-item" id="ni-${n.id}" onclick="markNotifRead('${n.id}');this.querySelector('.notif-dot').classList.add('read')">
+        <div class="notif-dot${n.read?' read':''}"></div>
+        <div><div class="notif-text">${n.message}</div><div class="notif-time">${fmtTime(n.created_at)}</div></div>
+      </div>`).join('');
+  }
+  html+=`</div>`;
+  if(oppPosts.length>0){
+    html+=`<div class="ppg-section"><h3>📌 Recent Opportunities from Your Network</h3>`;
+    html+=oppPosts.map(p=>`
+      <div class="opp-post-item" onclick="closeProfilePage();setTimeout(()=>showSection('forum',document.querySelector('.tab-btn')),350)">
+        <div class="opp-post-meta">${p.author_name} · ${fmtTime(p.created_at)}</div>
+        <div class="opp-post-text">${(p.text||'').slice(0,130)}${(p.text||'').length>130?'…':''}</div>
+      </div>`).join('');
+    html+=`</div>`;
+  }
+  container.innerHTML=html;
+  // Mark all as read after viewing
+  setTimeout(async()=>{
+    for(const n of notifs.filter(x=>!x.read)) await markNotifRead(n.id);
+    updateNotifBadge();
+    updateNotifBadgePPG();
+  },2500);
+}
+
+// ── View another registered user's profile ──
+async function viewUserProfile(userId){
+  if(!userId) return;
+  let profile;
+  try{
+    const rows=await dbGet(`profiles?id=eq.${userId}&select=*&limit=1`);
+    profile=rows&&rows[0];
+  }catch(e){}
+  if(!profile){showToast('Could not load profile.');return;}
+  let theirPosts=[];
+  try{
+    const rows=await dbGet(`posts?author_id=eq.${userId}&select=*&order=created_at.desc&limit=5`);
+    theirPosts=Array.isArray(rows)?rows:[];
+  }catch(e){}
+  const col=avaColor(profile.name), init=initials(profile.name);
+  const isBig=profile.role==='big';
+  const canConnect=currentUser&&currentUser.uid!==userId&&currentUser.role==='little'&&isBig;
+  const safeName=profile.name.replace(/'/g,'&#39;');
+  document.getElementById('profile-modal-content').innerHTML=`
+    <div class="viewing-profile-banner">
+      <div style="width:64px;height:64px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:#fff;border:3px solid rgba(255,255,255,.35);flex-shrink:0">${init}</div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;color:#fff">${profile.name}</div>
+        <div style="color:rgba(255,255,255,.72);font-size:.87rem;margin-top:3px">${isBig?(profile.company||'Professional Mentor'):(profile.school||'Student Member')}</div>
+        <div style="margin-top:6px">
+          ${isBig?'<span style="background:rgba(255,255,255,.2);color:#fff;padding:2px 9px;border-radius:10px;font-size:.75rem;font-weight:700">Big ✔</span>':'<span style="background:rgba(255,255,255,.2);color:#fff;padding:2px 9px;border-radius:10px;font-size:.75rem;font-weight:700">Little</span>'}
+          ${profile.location?`<span style="font-size:.8rem;color:rgba(255,255,255,.6);margin-left:8px">📍 ${profile.location}</span>`:''}
+        </div>
+      </div>
+    </div>
+    ${profile.bio?`<div style="font-size:.92rem;line-height:1.65;color:var(--charcoal-light);margin-bottom:18px">${profile.bio}</div>`:''}
+    ${isBig&&profile.education?`<div style="margin-bottom:14px"><div class="profile-section-title">Education</div><div style="font-size:.9rem;color:var(--charcoal-light)">${profile.education}</div></div>`:''}
+    ${isBig&&profile.career_fields&&profile.career_fields.length?`<div style="margin-bottom:14px"><div class="profile-section-title">Career Fields</div><div class="profile-tags">${profile.career_fields.map(f=>{const c=careerData.find(x=>x.key===f);return`<span class="profile-tag">${c?c.emoji+' '+c.title:f}</span>`}).join('')}</div></div>`:''}
+    ${isBig&&profile.willing_to&&profile.willing_to.length?`<div style="margin-bottom:14px"><div class="profile-section-title">Open To</div>${profile.willing_to.map(w=>`<div class="profile-open-item">✅ ${w}</div>`).join('')}</div>`:''}
+    ${!isBig&&profile.interests&&profile.interests.length?`<div style="margin-bottom:14px"><div class="profile-section-title">Interests</div><div class="profile-tags">${profile.interests.map(i=>`<span class="profile-tag">${i}</span>`).join('')}</div></div>`:''}
+    ${theirPosts.length?`<div style="margin-bottom:14px"><div class="profile-section-title">Recent Posts</div>${theirPosts.slice(0,3).map(p=>`<div class="my-post-item"><div class="meta">${fmtTime(p.created_at)} · ${p.tag}</div><div>${(p.text||'').slice(0,110)}${(p.text||'').length>110?'…':''}</div></div>`).join('')}</div>`:''}
+    <div id="connect-section-modal">
+      ${canConnect?`<button class="connect-btn" onclick="showConnectFormModal('${userId}','${safeName}')">✉️ Connect with ${profile.name.split(' ')[0]}</button>`:''}
+      ${!currentUser&&isBig?`<button class="connect-btn" onclick="openModal('login')">Sign in to Connect</button>`:''}
+    </div>`;
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+function showConnectFormModal(bigId, bigName){
+  const firstName=bigName.split(' ')[0];
+  const safeId=bigId;
+  const safeName=bigName.replace(/'/g,'&#39;');
+  document.getElementById('connect-section-modal').innerHTML=`
+    <div class="connect-form">
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:8px">Message to ${firstName}:</div>
+      <textarea id="connect-msg-modal" rows="3" placeholder="Hi ${firstName}! I'm a student interested in learning about your career path…"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="reply-cancel" onclick="viewUserProfile('${safeId}')">Cancel</button>
+        <button class="reply-submit" onclick="sendConnectMessage('${safeId}','${safeName}')">Send →</button>
+      </div>
+    </div>`;
+}
+
+async function sendConnectMessage(bigId, bigName){
+  if(!currentUser){showToast('Sign in to send messages!');return;}
+  const msgEl=document.getElementById('connect-msg-modal');
+  const msg=msgEl?.value.trim();
+  if(!msg){showToast('Please write a message first.');return;}
+  const firstName=bigName.split(' ')[0];
+  try{
+    await createNotification(bigId,'connect',`💌 ${currentUser.name} wants to connect: "${msg.slice(0,80)}${msg.length>80?'…':''}"`);
+    showToast(`Message sent to ${firstName}! 🌸`);
+    const secEl=document.getElementById('connect-section-modal');
+    if(secEl) secEl.innerHTML=`<div style="text-align:center;padding:14px;background:var(--cream);border-radius:10px;color:var(--charcoal-soft);font-size:.9rem">✉️ Request sent! ${firstName} will see your message in their notification center.</div>`;
+  }catch(e){showToast('Error sending message.');}
+}
+
+/* ──────────────────────────────────────────────────────────
+   COLLEGES + FIRESTORE REVIEWS/QUESTIONS
+────────────────────────────────────────────────────────── */
+const colleges=[
+  {id:'michigan',emoji:'〽️',color:'#003366',name:'University of Michigan',loc:'Ann Arbor, MI',rating:4.7,reviewCount:142,questionCount:58,tags:['Large Public','Research University','Big Ten'],
+   preview:'Amazing school spirit and top-tier research programs. So many clubs for women in STEM.',
+   ratBreakdown:{Safety:4.5,Support:4.8,Inclusivity:4.6,Social:4.9,Academics:4.7},
+   seedReviews:[{author:'Jade K.',year:'Class of 2024',stars:5,text:'Michigan is incredible for women in business — the Ross School gave me connections I still use daily.'}],
+   seedQA:[{q:'Is Ann Arbor safe for students?',a:'Relatively yes — the campus is well lit and there are plenty of safety resources.'}]},
+  {id:'spelman',emoji:'🌺',color:'#2a4d2a',name:'Spelman College',loc:'Atlanta, GA',rating:4.9,reviewCount:98,questionCount:44,tags:['HBCU','Women-Only','Liberal Arts'],
+   preview:'An absolutely transformative experience. The sisterhood and community here is unlike anything else.',
+   ratBreakdown:{Safety:4.7,Support:5.0,Inclusivity:5.0,Social:4.8,Academics:4.7},
+   seedReviews:[{author:'Aaliyah T.',year:'Class of 2025',stars:5,text:"Spelman is a place where you are truly seen. The alumnae network opens every door."}],
+   seedQA:[{q:'What is the social life like at Spelman?',a:"Vibrant! Being next to Morehouse means there's always something happening."}]},
+  {id:'northwestern',emoji:'🟣',color:'#4e2a84',name:'Northwestern University',loc:'Evanston, IL',rating:4.6,reviewCount:119,questionCount:51,tags:['Private Research','Highly Selective','Lakefront'],
+   preview:'Elite academics with a stunning lakefront campus. The journalism and theater programs are world-class.',
+   ratBreakdown:{Safety:4.4,Support:4.5,Inclusivity:4.4,Social:4.3,Academics:4.9},
+   seedReviews:[{author:'Sara J.',year:'Class of 2023',stars:5,text:"The quarter system is intense but you cover so much ground. Medill was everything."}],
+   seedQA:[{q:'How competitive is Northwestern socially?',a:'There can be recruiting pressure, but the community is genuinely collaborative.'}]},
+  {id:'georgia',emoji:'🔴',color:'#ba0c2f',name:'University of Georgia',loc:'Athens, GA',rating:4.4,reviewCount:203,questionCount:67,tags:['Large Public','SEC','Research University'],
+   preview:"A true college town experience. Athens is alive with music, culture, and incredible food.",
+   ratBreakdown:{Safety:4.3,Support:4.4,Inclusivity:4.2,Social:4.9,Academics:4.3},
+   seedReviews:[{author:'Brooke H.',year:'Sophomore',stars:5,text:"The business school is amazing and the campus is gorgeous. Athens is the perfect college town."}],
+   seedQA:[{q:'Is UGA good for pre-law?',a:"Very good. The programs are strong and Atlanta's legal market is close."}]},
+  {id:'wellesley',emoji:'🔵',color:'#006699',name:'Wellesley College',loc:'Wellesley, MA',rating:4.8,reviewCount:76,questionCount:35,tags:['Women-Only','Liberal Arts','Elite'],
+   preview:'Wellesley women lead the world. The intellectual community is unmatched.',
+   ratBreakdown:{Safety:4.9,Support:4.9,Inclusivity:4.9,Social:4.4,Academics:4.9},
+   seedReviews:[{author:'Claire M.',year:'Class of 2024',stars:5,text:"Being in an all-women environment completely transformed my confidence."}],
+   seedQA:[{q:"How is the social life at a women's college?",a:"Better than expected! MIT is 10 minutes away and the on-campus community is incredible."}]},
+];
+
+function renderColleges(list){
+  const grid=document.getElementById('college-grid');
+  if(!list.length){grid.innerHTML='<div class="no-results" style="grid-column:1/-1">No colleges found.</div>';return;}
+  grid.innerHTML=list.map(c=>`
+    <div class="college-card" onclick="showCollege('${c.id}')">
+      <div class="college-header">
+        <div class="college-logo" style="background:${c.color}22;color:${c.color}">${c.emoji}</div>
+        <div><div class="college-name">${c.name}</div><div class="college-location">📍 ${c.loc}</div></div>
+        <div class="college-rating">
+          <div class="rating-num">${c.rating}</div>
+          <div class="stars">${'★'.repeat(Math.round(c.rating))}</div>
+        </div>
+      </div>
+      <div class="college-tags">${c.tags.map(t=>`<span class="college-tag">${t}</span>`).join('')}</div>
+      <div class="college-preview">"${c.preview}"</div>
+      <div class="college-footer">
+        <span>💬 <span id="rvc-${c.id}">${c.reviewCount}</span> reviews</span>
+        <span>❓ <span id="qsc-${c.id}">${c.questionCount}</span> questions</span>
+        <span style="margin-left:auto;color:var(--green);font-weight:700;">View →</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterColleges(val){
+  const term=val.toLowerCase();
+  renderColleges(colleges.filter(c=>!term||c.name.toLowerCase().includes(term)||c.loc.toLowerCase().includes(term)||c.tags.some(t=>t.toLowerCase().includes(term))));
+}
+
+async function showCollege(id){
+  const c=colleges.find(x=>x.id===id);
+  document.getElementById('college-grid-wrapper').style.display='none';
+  const det=document.getElementById('college-detail');
+
+  // Load reviews and questions from Supabase
+  let dbReviews=[],dbQA=[];
+  if(CONFIGURED){
+    try{
+      const rv = await dbGet(`college_reviews?college_id=eq.${id}&select=*&order=created_at.desc`);
+      dbReviews = Array.isArray(rv) ? rv : [];
+    }catch(e){}
+    try{
+      const qa = await dbGet(`college_questions?college_id=eq.${id}&select=*&order=created_at.desc`);
+      dbQA = Array.isArray(qa) ? qa : [];
+    }catch(e){}
+  }
+
+  const allReviews=[...dbReviews.map(r=>({author:r.author_name,year:fmtTime(r.created_at),stars:r.stars,text:r.text})),...c.seedReviews];
+  const allQA=[...dbQA.map(q=>({q:q.question,a:q.answer||'Awaiting answers from verified attendees…'})),...c.seedQA];
+
+  // Calculate per-category averages from DB reviews (fall back to seed breakdown if no DB data)
+  const REVIEW_CATS=['Safety','Support','Inclusivity','Social','Academics'];
+  const catField=cat=>cat.toLowerCase()+'_stars';
+  const calcRatings={};
+  REVIEW_CATS.forEach(cat=>{
+    const vals=dbReviews.filter(r=>r[catField(cat)]!=null).map(r=>r[catField(cat)]);
+    calcRatings[cat]=vals.length>0
+      ?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10
+      :c.ratBreakdown[cat];
+  });
+  const allStars=[...dbReviews.map(r=>r.stars||Object.values(calcRatings).reduce((a,b)=>a+b,0)/5),...c.seedReviews.map(r=>r.stars)];
+  const overallRating=allStars.length>0?Math.round(allStars.reduce((a,b)=>a+b,0)/allStars.length*10)/10:c.rating;
+
+  det.innerHTML=`
+    <button class="back-btn" onclick="backToColleges()">← Back to Colleges</button>
+    <div class="college-detail-banner">
+      <div class="college-big-logo" style="background:${c.color}33">${c.emoji}</div>
+      <div>
+        <div class="college-detail-name">${c.name}</div>
+        <div class="college-detail-loc">📍 ${c.loc} &nbsp;·&nbsp; ${c.tags.join(' · ')}</div>
+      </div>
+      <div class="college-detail-stats">
+        <div class="detail-stat"><div class="detail-stat-num" id="overall-rating-${id}">${overallRating}</div><div class="detail-stat-lbl">Rating</div></div>
+        <div class="detail-stat"><div class="detail-stat-num" id="rv-count-${id}">${allReviews.length}</div><div class="detail-stat-lbl">Reviews</div></div>
+        <div class="detail-stat"><div class="detail-stat-num" id="qa-count-${id}">${allQA.length}</div><div class="detail-stat-lbl">Questions</div></div>
+      </div>
+    </div>
+    <div class="college-tabs">
+      <button class="college-tab active" onclick="switchCollegeTab('reviews',this)">📝 Reviews</button>
+      <button class="college-tab"        onclick="switchCollegeTab('ratings',this)">⭐ Ratings</button>
+      <button class="college-tab"        onclick="switchCollegeTab('qa',this)">❓ Q&A</button>
+    </div>
+    <!-- REVIEWS TAB -->
+    <div id="ctab-reviews" class="college-tab-content active">
+      <div class="qa-compose" style="margin-bottom:20px;">
+        <textarea id="rv-${id}" rows="2" placeholder="Write your experience at ${c.name}…"
+          style="width:100%;padding:12px 14px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:inherit;font-size:.95rem;margin-bottom:14px;background:#fff;resize:none;display:block;"></textarea>
+        <div style="font-size:.83rem;font-weight:700;color:var(--charcoal-light);margin-bottom:8px;">Rate each category (1–5 ★):</div>
+        ${['Safety','Support','Inclusivity','Social','Academics'].map(cat=>`
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+            <span style="font-size:.82rem;color:var(--charcoal-light);min-width:82px;">${cat}</span>
+            <div class="star-selector" id="ss-${id}-${cat.toLowerCase()}" data-val="5">
+              <span class="lit" onclick="setStar('${id}-${cat.toLowerCase()}',1)">★</span>
+              <span class="lit" onclick="setStar('${id}-${cat.toLowerCase()}',2)">★</span>
+              <span class="lit" onclick="setStar('${id}-${cat.toLowerCase()}',3)">★</span>
+              <span class="lit" onclick="setStar('${id}-${cat.toLowerCase()}',4)">★</span>
+              <span class="lit" onclick="setStar('${id}-${cat.toLowerCase()}',5)">★</span>
+            </div>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+          <button class="post-btn" onclick="submitCollegeReview('${id}')">Submit Review →</button>
+        </div>
+      </div>
+      <div id="rvl-${id}">
+        ${allReviews.map(r=>`
+          <div class="review-card">
+            <div class="review-header">
+              <div class="avatar" style="background:${avaColor(r.author)};width:36px;height:36px;font-size:.8rem">${initials(r.author)}</div>
+              <div><div class="review-author">${r.author}</div><div class="review-year">${r.year}</div></div>
+              <div class="review-stars">${'★'.repeat(r.stars)}</div>
+            </div>
+            <div class="review-body">"${r.text}"</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <!-- RATINGS TAB -->
+    <div id="ctab-ratings" class="college-tab-content">
+      <div class="rating-breakdown">
+        <h3 style="margin-bottom:4px;font-size:1rem;">Community Ratings</h3>
+        <div style="font-size:.8rem;color:var(--charcoal-soft);margin-bottom:16px;">Overall: <strong style="color:var(--green)">${overallRating} ★</strong> based on ${allReviews.length} review${allReviews.length!==1?'s':''}</div>
+        ${REVIEW_CATS.map(cat=>`
+          <div class="rating-row">
+            <div class="rating-label">${cat}</div>
+            <div class="rating-bar-bg"><div id="rb-${id}-${cat.toLowerCase()}" class="rating-bar-fill" style="width:${calcRatings[cat]/5*100}%"></div></div>
+            <div class="rating-val" id="rv-${id}-${cat.toLowerCase()}">${calcRatings[cat]}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <!-- Q&A TAB -->
+    <div id="ctab-qa" class="college-tab-content">
+      <div class="qa-compose" style="margin-bottom:20px;">
+        <input type="text" id="cq-${id}" placeholder="Ask a question about ${c.name}…"/>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px">
+          <button class="post-btn" onclick="submitCollegeQuestion('${id}')">Ask →</button>
+        </div>
+      </div>
+      <div id="cql-${id}">
+        ${allQA.map(item=>`
+          <div class="qa-card">
+            <div class="qa-question">Q: ${item.q}</div>
+            <div class="qa-answers"><div class="qa-answer">${item.a}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  det.classList.add('active');
+}
+
+function setStar(id,val){
+  const s=document.getElementById('ss-'+id);s.dataset.val=val;
+  s.querySelectorAll('span').forEach((x,i)=>x.classList.toggle('lit',i<val));
+}
+
+async function submitCollegeReview(id){
+  if(!currentUser){openModal('login');showToast('Sign in to leave a review!');return;}
+  const ta=document.getElementById('rv-'+id);
+  const text=ta.value.trim();
+  if(!text){showToast('Please write your review first.');return;}
+  const cats=['safety','support','inclusivity','social','academics'];
+  const catRatings={};
+  cats.forEach(cat=>{
+    catRatings[cat]=parseInt(document.getElementById(`ss-${id}-${cat}`)?.dataset.val)||5;
+  });
+  const overall=Math.round(Object.values(catRatings).reduce((a,b)=>a+b,0)/5*10)/10;
+  try{
+    await dbPost('college_reviews',{
+      college_id:id, author_id:currentUser.uid, author_name:currentUser.name,
+      stars:overall,
+      safety_stars:catRatings.safety, support_stars:catRatings.support,
+      inclusivity_stars:catRatings.inclusivity, social_stars:catRatings.social,
+      academics_stars:catRatings.academics,
+      text
+    });
+  }catch(e){ showToast('Error submitting review.'); return; }
+  showToast('Review submitted! Updating ratings… 🌸');
+  // Reload the college view to recalculate all averages live
+  await showCollege(id);
+}
+
+async function submitCollegeQuestion(id){
+  if(!currentUser){openModal('login');showToast('Sign in to ask a question!');return;}
+  const input=document.getElementById('cq-'+id);
+  const q=input.value.trim();
+  if(!q){showToast('Please type a question first.');return;}
+  try{ await dbPost('college_questions',{college_id:id,question:q,asked_by:currentUser.name,asked_by_id:currentUser.uid,answer:null}); }
+  catch(e){ showToast('Error posting question.'); return; }
+  input.value='';
+  const newCard=document.createElement('div');
+  newCard.className='qa-card';newCard.style.animation='fadeIn .3s ease';
+  newCard.innerHTML=`
+    <div class="qa-question">Q: ${q}</div>
+    <div class="qa-answers">
+      <div class="qa-answer" style="color:var(--charcoal-soft);font-style:italic;">
+        Asked by ${currentUser.name} · Awaiting answers…
+      </div>
+    </div>`;
+  const list=document.getElementById('cql-'+id);
+  list.insertBefore(newCard,list.firstChild);
+  const cnt=document.getElementById('qa-count-'+id);
+  if(cnt) cnt.textContent=parseInt(cnt.textContent)+1;
+  showToast('Question posted! 🎉');
+}
+
+function switchCollegeTab(tab,btn){
+  document.querySelectorAll('.college-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.college-tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ctab-'+tab).classList.add('active');
+}
+function backToColleges(){
+  document.getElementById('college-grid-wrapper').style.display='';
+  const det=document.getElementById('college-detail');
+  det.classList.remove('active');det.innerHTML='';
+}
+
+renderColleges(colleges);
+</script>
+
+<!--
+════════════════════════════════════════════════════════════════
+  SUPABASE SETUP — Run this SQL once in Supabase → SQL Editor
+  (This is the same SQL shown in the setup overlay)
+════════════════════════════════════════════════════════════════
+
+create table profiles (id uuid references auth.users primary key, name text not null, email text, role text not null default 'little', created_at timestamptz default now());
+create table posts (id uuid default gen_random_uuid() primary key, author_id uuid, author_name text, author_role text, subtitle text, tag text default 'general', text text, liked_by text[] default '{}', helpful_by text[] default '{}', replies jsonb default '[]', created_at timestamptz default now());
+create table career_questions (id uuid default gen_random_uuid() primary key, career_key text, question text, asked_by text, asked_by_id uuid, answer text, created_at timestamptz default now());
+create table college_reviews (id uuid default gen_random_uuid() primary key, college_id text, author_id uuid, author_name text, stars numeric default 5, safety_stars integer default 5, support_stars integer default 5, inclusivity_stars integer default 5, social_stars integer default 5, academics_stars integer default 5, text text, created_at timestamptz default now());
+create table college_questions (id uuid default gen_random_uuid() primary key, college_id text, question text, asked_by text, asked_by_id uuid, answer text, created_at timestamptz default now());
+alter table profiles enable row level security;
+alter table posts enable row level security;
+alter table career_questions enable row level security;
+alter table college_reviews enable row level security;
+alter table college_questions enable row level security;
+create policy "Public read profiles" on profiles for select using (true);
+create policy "Own insert profile" on profiles for insert with check (auth.uid() = id);
+create policy "Own update profile" on profiles for update using (auth.uid() = id);
+create policy "Public read posts" on posts for select using (true);
+create policy "Auth insert post" on posts for insert with check (auth.role() = 'authenticated');
+create policy "Auth update post" on posts for update using (auth.role() = 'authenticated');
+create policy "Public read career_questions" on career_questions for select using (true);
+create policy "Auth insert career_question" on career_questions for insert with check (auth.role() = 'authenticated');
+create policy "Auth update career_question" on career_questions for update using (auth.role() = 'authenticated');
+create policy "Public read college_reviews" on college_reviews for select using (true);
+create policy "Auth insert college_review" on college_reviews for insert with check (auth.role() = 'authenticated');
+create policy "Public read college_questions" on college_questions for select using (true);
+create policy "Auth insert college_question" on college_questions for insert with check (auth.role() = 'authenticated');
+alter publication supabase_realtime add table posts;
+
+════════════════════════════════════════════════════════════════
+-->
+</body>
+</html>
